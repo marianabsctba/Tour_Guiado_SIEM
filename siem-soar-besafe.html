@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIEM/SOAR Be Safe</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050a14;
+  --bg2: #0a1628;
+  --bg3: #0d1f3c;
+  --panel: rgba(10,22,40,0.95);
+  --panel2: rgba(5,15,30,0.9);
+  --accent: #00d4ff;
+  --accent2: #ff3d71;
+  --accent3: #00ff88;
+  --accent4: #ffd700;
+  --text: #e0f0ff;
+  --text2: #7aa3cc;
+  --text3: #3a6a9a;
+  --border: rgba(0,212,255,0.25);
+  --border2: rgba(0,212,255,0.5);
+  --glow: 0 0 20px rgba(0,212,255,0.4);
+  --glow2: 0 0 30px rgba(0,212,255,0.2);
+  --red-glow: 0 0 20px rgba(255,61,113,0.5);
+  --green-glow: 0 0 20px rgba(0,255,136,0.4);
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-main: 'Exo 2', sans-serif;
+  --font-title: 'Orbitron', monospace;
+  --transition: 0.3s ease;
+}
+
+.light-mode {
+  --bg: #eef4fc;
+  --bg2: #ddeaf8;
+  --bg3: #ccddf0;
+  --panel: rgba(255,255,255,0.95);
+  --panel2: rgba(240,248,255,0.9);
+  --accent: #0066cc;
+  --accent2: #cc0044;
+  --accent3: #007733;
+  --accent4: #cc8800;
+  --text: #0d2040;
+  --text2: #2a5080;
+  --text3: #5588aa;
+  --border: rgba(0,102,204,0.25);
+  --border2: rgba(0,102,204,0.5);
+  --glow: 0 4px 15px rgba(0,102,204,0.2);
+  --glow2: 0 2px 10px rgba(0,102,204,0.1);
+  --red-glow: 0 0 15px rgba(204,0,68,0.3);
+  --green-glow: 0 0 15px rgba(0,119,51,0.3);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  min-height: 100vh;
+  transition: background 0.4s, color 0.4s;
+}
+
+/* BACKGROUND EFFECTS */
+.bg-grid {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridShift 20s linear infinite;
+}
+.light-mode .bg-grid {
+  background-image:
+    linear-gradient(rgba(0,102,204,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,102,204,0.05) 1px, transparent 1px);
+}
+@keyframes gridShift { from{background-position:0 0} to{background-position:40px 40px} }
+
+.bg-particles { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+/* TOP BAR */
+.topbar {
+  position: sticky; top:0; z-index:100;
+  background: linear-gradient(135deg, var(--panel) 0%, var(--panel2) 100%);
+  border-bottom: 1px solid var(--border2);
+  padding: 8px 20px;
+  display: flex; align-items:center; justify-content:space-between;
+  backdrop-filter: blur(20px);
+  box-shadow: var(--glow2);
+}
+.logo-area { display:flex; align-items:center; gap:12px; }
+.logo-icon {
+  width:40px; height:40px; border-radius:8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; box-shadow: var(--glow);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0%,100% { box-shadow: var(--glow); }
+  50% { box-shadow: 0 0 40px rgba(0,212,255,0.7); }
+}
+.logo-text { font-family: var(--font-title); font-size: clamp(14px,3vw,22px); font-weight:900; }
+.logo-text span { color: var(--accent2); }
+.logo-sub { font-family: var(--font-mono); font-size:10px; color:var(--text3); letter-spacing:3px; }
+
+.topbar-controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.btn-icon {
+  background: rgba(0,212,255,0.1); border: 1px solid var(--border);
+  color: var(--accent); padding: 6px 10px; border-radius:6px; cursor:pointer;
+  font-size:16px; transition: var(--transition);
+  display:flex; align-items:center; gap:5px; font-family: var(--font-mono); font-size:11px;
+}
+.btn-icon:hover { background: rgba(0,212,255,0.2); box-shadow: var(--glow); transform:scale(1.05); }
+.btn-tour {
+  background: linear-gradient(135deg, var(--accent2), #ff6b35);
+  border: none; color: white; padding: 8px 16px; border-radius:6px;
+  cursor:pointer; font-weight:700; font-family:var(--font-main); font-size:12px;
+  animation: tourPulse 2s ease-in-out infinite;
+  letter-spacing:1px;
+}
+@keyframes tourPulse {
+  0%,100% { box-shadow: var(--red-glow); }
+  50% { box-shadow: 0 0 30px rgba(255,61,113,0.8); }
+}
+.status-dot { width:8px; height:8px; border-radius:50%; background: var(--accent3); display:inline-block; animation: blink 1s infinite; margin-right:4px; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* DATETIME */
+.datetime { font-family:var(--font-mono); font-size:11px; color:var(--text2); text-align:right; }
+
+/* ALERT TICKER */
+.ticker-wrap {
+  background: rgba(255,61,113,0.1); border-top:1px solid rgba(255,61,113,0.3);
+  border-bottom:1px solid rgba(255,61,113,0.3); overflow:hidden; padding:4px 0;
+}
+.ticker {
+  display:flex; animation: tickerScroll 40s linear infinite; white-space:nowrap;
+}
+.ticker-item {
+  font-family:var(--font-mono); font-size:11px; padding:0 30px; color:var(--accent2);
+}
+.ticker-item span { color: var(--accent4); }
+@keyframes tickerScroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* MAIN LAYOUT */
+.main-container {
+  position: relative; z-index:1; padding:16px;
+  display: grid; gap:12px;
+  grid-template-areas:
+    "hero hero hero"
+    "modules modules modules"
+    "alerts timeline ueba"
+    "playbook threat hunt"
+    "soar soar intel";
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* HERO PANEL */
+.hero-panel {
+  grid-area: hero;
+  background: linear-gradient(135deg, var(--panel), var(--panel2));
+  border: 1px solid var(--border2); border-radius:12px; padding:20px;
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;
+  box-shadow: var(--glow2); position:relative; overflow:hidden;
+}
+.hero-panel::before {
+  content:''; position:absolute; top:-50%; right:-10%;
+  width:400px; height:400px; border-radius:50%;
+  background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-stats { display:flex; gap:20px; flex-wrap:wrap; }
+.stat-card {
+  text-align:center; padding:12px 20px;
+  background: rgba(0,212,255,0.07); border: 1px solid var(--border); border-radius:8px;
+  min-width:90px; cursor:pointer; transition: var(--transition);
+}
+.stat-card:hover { transform:translateY(-3px); box-shadow: var(--glow); }
+.stat-val { font-family:var(--font-title); font-size:clamp(18px,3vw,28px); font-weight:900; }
+.stat-val.red { color:var(--accent2); }
+.stat-val.green { color:var(--accent3); }
+.stat-val.yellow { color:var(--accent4); }
+.stat-val.blue { color:var(--accent); }
+.stat-label { font-size:10px; color:var(--text3); letter-spacing:1px; margin-top:4px; }
+
+.threat-level {
+  display:flex; align-items:center; gap:16px;
+}
+.threat-ring {
+  width:90px; height:90px; border-radius:50%; position:relative;
+  display:flex; align-items:center; justify-content:center;
+}
+.threat-ring svg { position:absolute; top:0; left:0; transform:rotate(-90deg); }
+.threat-ring-inner { text-align:center; z-index:1; }
+.threat-ring-inner .val { font-family:var(--font-title); font-size:22px; font-weight:900; color:var(--accent2); }
+.threat-ring-inner .lbl { font-size:9px; color:var(--text3); }
+
+/* PANELS */
+.panel {
+  background: linear-gradient(135deg, var(--panel), var(--panel2));
+  border: 1px solid var(--border); border-radius:12px; padding:16px;
+  box-shadow: var(--glow2); position:relative; overflow:hidden;
+  transition: var(--transition);
+}
+.panel:hover { border-color: var(--border2); box-shadow: var(--glow); }
+.panel-header {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
+  padding-bottom:10px; border-bottom: 1px solid var(--border);
+}
+.panel-title {
+  font-family:var(--font-title); font-size:clamp(9px,1.5vw,12px); font-weight:700;
+  color:var(--accent); letter-spacing:2px; display:flex; align-items:center; gap:8px;
+}
+.panel-badge {
+  background: rgba(255,61,113,0.2); color:var(--accent2); font-size:10px;
+  padding:2px 8px; border-radius:20px; border:1px solid rgba(255,61,113,0.3);
+  font-family:var(--font-mono);
+}
+.panel-badge.green { background:rgba(0,255,136,0.15); color:var(--accent3); border-color:rgba(0,255,136,0.3); }
+.panel-badge.yellow { background:rgba(255,215,0,0.15); color:var(--accent4); border-color:rgba(255,215,0,0.3); }
+
+/* MODULE CARDS */
+.modules-panel { grid-area: modules; }
+.modules-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap:10px;
+}
+.module-card {
+  background: rgba(0,212,255,0.05); border:1px solid var(--border); border-radius:10px;
+  padding:14px 12px; cursor:pointer; transition: var(--transition);
+  text-align:center; position:relative; overflow:hidden;
+}
+.module-card:hover {
+  border-color: var(--accent); transform:translateY(-4px);
+  box-shadow: var(--glow); background: rgba(0,212,255,0.12);
+}
+.module-card.active {
+  border-color: var(--accent3); background: rgba(0,255,136,0.1);
+  box-shadow: var(--green-glow);
+}
+.module-card.danger { border-color: var(--accent2); background:rgba(255,61,113,0.08); }
+.module-card.danger:hover { box-shadow: var(--red-glow); }
+.module-icon { font-size:26px; margin-bottom:8px; }
+.module-name { font-size:11px; font-weight:700; color:var(--text); letter-spacing:0.5px; }
+.module-status { font-family:var(--font-mono); font-size:9px; color:var(--text3); margin-top:4px; }
+.module-pulse { position:absolute; top:8px; right:8px; width:6px; height:6px; border-radius:50%; }
+.module-pulse.on { background:var(--accent3); animation:blink 1.5s infinite; }
+.module-pulse.warn { background:var(--accent4); animation:blink 0.8s infinite; }
+.module-pulse.alert { background:var(--accent2); animation:blink 0.5s infinite; }
+
+/* ALERTS */
+.alerts-panel { grid-area: alerts; }
+.alert-list { display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; }
+.alert-item {
+  display:flex; align-items:flex-start; gap:10px; padding:10px;
+  background: rgba(255,61,113,0.08); border-left:3px solid var(--accent2); border-radius:6px;
+  cursor:pointer; transition: var(--transition); animation: slideIn 0.3s ease;
+}
+.alert-item:hover { background: rgba(255,61,113,0.15); transform:translateX(4px); }
+.alert-item.medium { border-color: var(--accent4); background:rgba(255,215,0,0.06); }
+.alert-item.medium:hover { background:rgba(255,215,0,0.12); }
+.alert-item.low { border-color: var(--accent); background:rgba(0,212,255,0.06); }
+.alert-item.info { border-color: var(--accent3); background:rgba(0,255,136,0.05); }
+.alert-sev { font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px; flex-shrink:0; margin-top:1px; }
+.sev-crit { background:rgba(255,61,113,0.3); color:var(--accent2); }
+.sev-med { background:rgba(255,215,0,0.3); color:var(--accent4); }
+.sev-low { background:rgba(0,212,255,0.2); color:var(--accent); }
+.sev-info { background:rgba(0,255,136,0.2); color:var(--accent3); }
+.alert-body { flex:1; min-width:0; }
+.alert-title { font-size:12px; font-weight:600; }
+.alert-meta { font-family:var(--font-mono); font-size:10px; color:var(--text3); margin-top:3px; }
+@keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
+
+/* TIMELINE */
+.timeline-panel { grid-area: timeline; }
+.timeline { display:flex; flex-direction:column; gap:0; position:relative; max-height:280px; overflow-y:auto; }
+.timeline::before { content:''; position:absolute; left:18px; top:0; bottom:0; width:2px; background:linear-gradient(180deg, var(--accent), transparent); }
+.tl-item { display:flex; gap:12px; padding:8px 0 8px 10px; position:relative; }
+.tl-dot { width:16px; height:16px; border-radius:50%; border:2px solid var(--accent); background:var(--bg2); flex-shrink:0; margin-top:2px; z-index:1; }
+.tl-dot.red { border-color:var(--accent2); box-shadow: var(--red-glow); background:rgba(255,61,113,0.2); }
+.tl-dot.green { border-color:var(--accent3); }
+.tl-dot.yellow { border-color:var(--accent4); }
+.tl-body { font-size:11px; }
+.tl-time { font-family:var(--font-mono); font-size:9px; color:var(--text3); }
+.tl-text { margin-top:2px; }
+
+/* UEBA */
+.ueba-panel { grid-area: ueba; }
+.ueba-user-list { display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; }
+.ueba-user {
+  display:flex; align-items:center; gap:10px; padding:10px;
+  background:rgba(0,212,255,0.05); border:1px solid var(--border); border-radius:8px;
+  cursor:pointer; transition: var(--transition);
+}
+.ueba-user:hover { background:rgba(0,212,255,0.1); border-color:var(--border2); transform:scale(1.01); }
+.ueba-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.ueba-info { flex:1; min-width:0; }
+.ueba-name { font-size:12px; font-weight:600; }
+.ueba-role { font-size:10px; color:var(--text3); }
+.ueba-risk { text-align:right; }
+.risk-score { font-family:var(--font-title); font-size:18px; font-weight:900; }
+.risk-bar { height:4px; border-radius:2px; background:var(--bg3); margin-top:4px; overflow:hidden; }
+.risk-fill { height:100%; border-radius:2px; transition:width 1s ease; }
+
+/* PLAYBOOK */
+.playbook-panel { grid-area: playbook; }
+.playbook-list { display:flex; flex-direction:column; gap:8px; }
+.pb-item {
+  padding:12px; border:1px solid var(--border); border-radius:8px;
+  cursor:pointer; transition: var(--transition);
+  background:rgba(0,212,255,0.04);
+}
+.pb-item:hover { border-color:var(--accent); background:rgba(0,212,255,0.1); }
+.pb-header { display:flex; align-items:center; justify-content:space-between; }
+.pb-name { font-size:12px; font-weight:700; }
+.pb-actions { font-size:10px; color:var(--text3); font-family:var(--font-mono); }
+.pb-progress { height:3px; background:var(--bg3); border-radius:2px; margin-top:8px; overflow:hidden; }
+.pb-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--accent),var(--accent3)); transition:width 1.5s ease; }
+.pb-tags { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.pb-tag { font-size:9px; padding:2px 6px; border-radius:4px; background:rgba(0,212,255,0.1); color:var(--accent); border:1px solid var(--border); }
+.run-btn {
+  background:linear-gradient(135deg,var(--accent),var(--accent3)); color:#000;
+  border:none; padding:5px 12px; border-radius:5px; cursor:pointer; font-size:10px; font-weight:700;
+  transition:var(--transition); margin-top:8px;
+}
+.run-btn:hover { transform:scale(1.05); box-shadow: var(--green-glow); }
+
+/* THREAT HUNT */
+.hunt-panel { grid-area: threat }
+.hunt-query {
+  display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;
+}
+.hunt-input {
+  flex:1; background:rgba(0,212,255,0.05); border:1px solid var(--border); color:var(--text);
+  padding:8px 12px; border-radius:6px; font-family:var(--font-mono); font-size:11px; min-width:120px;
+}
+.hunt-input:focus { outline:none; border-color:var(--accent); box-shadow:var(--glow); }
+.hunt-btn {
+  background:linear-gradient(135deg,var(--accent2),#ff6b35); border:none; color:white;
+  padding:8px 16px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:700;
+  transition:var(--transition);
+}
+.hunt-btn:hover { transform:scale(1.05); box-shadow: var(--red-glow); }
+.hunt-results { font-family:var(--font-mono); font-size:11px; color:var(--accent3); max-height:180px; overflow-y:auto; }
+.hunt-line { padding:3px 0; border-bottom:1px solid rgba(0,212,255,0.05); }
+.hunt-line span { color:var(--accent2); }
+
+/* SOAR */
+.soar-panel { grid-area: soar; }
+.soar-workflow {
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:12px;
+  background:rgba(0,0,0,0.2); border-radius:8px; overflow-x:auto;
+}
+.workflow-step {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:10px 14px; border:1px solid var(--border); border-radius:8px;
+  cursor:pointer; transition:var(--transition); min-width:90px; text-align:center;
+  background:rgba(0,212,255,0.04);
+}
+.workflow-step:hover { border-color:var(--accent); transform:scale(1.05); box-shadow:var(--glow); }
+.workflow-step.active { border-color:var(--accent3); background:rgba(0,255,136,0.1); }
+.workflow-step.running { border-color:var(--accent4); background:rgba(255,215,0,0.08); animation:borderPulse 1s infinite; }
+.workflow-step.done { border-color:var(--accent3); background:rgba(0,255,136,0.08); }
+@keyframes borderPulse { 0%,100%{box-shadow:none} 50%{box-shadow:var(--glow)} }
+.ws-icon { font-size:22px; }
+.ws-name { font-size:10px; font-weight:700; }
+.ws-status { font-size:9px; color:var(--text3); font-family:var(--font-mono); }
+.workflow-arrow { color:var(--accent); font-size:18px; flex-shrink:0; }
+.soar-controls { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+.soar-btn {
+  padding:8px 16px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:700;
+  transition:var(--transition); border:none;
+}
+.soar-btn.start { background:linear-gradient(135deg,var(--accent3),#00aa55); color:#000; }
+.soar-btn.start:hover { box-shadow:var(--green-glow); transform:scale(1.05); }
+.soar-btn.reset { background:rgba(255,61,113,0.2); color:var(--accent2); border:1px solid rgba(255,61,113,0.3); }
+.soar-btn.reset:hover { background:rgba(255,61,113,0.35); }
+
+/* INTEL */
+.intel-panel { grid-area: intel; }
+.ioc-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.ioc-card {
+  padding:10px; border:1px solid var(--border); border-radius:8px;
+  background:rgba(255,61,113,0.05); cursor:pointer; transition:var(--transition);
+}
+.ioc-card:hover { border-color:var(--accent2); background:rgba(255,61,113,0.12); transform:scale(1.02); }
+.ioc-type { font-size:9px; color:var(--accent2); font-family:var(--font-mono); letter-spacing:1px; margin-bottom:4px; }
+.ioc-val { font-family:var(--font-mono); font-size:11px; word-break:break-all; }
+.ioc-score { font-size:9px; color:var(--text3); margin-top:4px; }
+.confidence { display:inline-block; height:3px; border-radius:2px; margin-left:6px; background:var(--accent2); }
+
+/* TOUR SYSTEM */
+.tour-overlay {
+  position: fixed; top:0; left:0; width:100%; height:100%; z-index:1000;
+  pointer-events:none; display:none;
+}
+.tour-overlay.active { display:block; }
+.tour-backdrop { display:none; }
+.tour-highlight {
+  position:fixed; border:3px solid var(--accent2);
+  border-radius:12px;
+  box-shadow: 0 0 0 9999px rgba(0,5,15,0.7), 0 0 30px rgba(255,61,113,0.7);
+  transition: all 0.45s cubic-bezier(0.4,0,0.2,1);
+  pointer-events:none; z-index:1001; display:none;
+}
+.tour-card {
+  position:fixed; background: linear-gradient(135deg, #0a1628, #050a14);
+  border:2px solid var(--accent2); border-radius:16px; padding:20px; max-width:320px; min-width:250px;
+  box-shadow: var(--red-glow), 0 20px 60px rgba(0,0,0,0.9);
+  z-index:1002; animation:tourCardIn 0.4s ease; pointer-events:all; display:none;
+}
+.light-mode .tour-card { background:linear-gradient(135deg,#ffffff,#eef4fc); }
+@keyframes tourCardIn { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
+.tour-card-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.tour-step-num {
+  background:linear-gradient(135deg,var(--accent2),#ff6b35); color:white;
+  width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:13px; flex-shrink:0;
+}
+.tour-card-title { font-family:var(--font-title); font-size:13px; color:var(--accent); font-weight:700; }
+.tour-card-body { font-size:12px; color:var(--text2); line-height:1.7; margin-bottom:14px; }
+.tour-card-tech { font-family:var(--font-mono); font-size:10px; color:var(--accent4); background:rgba(255,215,0,0.08); padding:8px; border-radius:6px; margin-bottom:12px; }
+.tour-nav { display:flex; justify-content:space-between; align-items:center; }
+.tour-arrow {
+  background: linear-gradient(135deg,var(--accent2),#ff6b35); border:none; color:white;
+  width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:18px;
+  display:flex; align-items:center; justify-content:center; transition:var(--transition);
+  animation: arrowBounce 1s ease-in-out infinite;
+}
+.tour-arrow:hover { transform:scale(1.15); box-shadow:var(--red-glow); }
+@keyframes arrowBounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+.tour-arrow.left { animation: arrowBounceL 1s ease-in-out infinite; }
+@keyframes arrowBounceL { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+.tour-progress-bar { height:3px; background:rgba(255,255,255,0.1); border-radius:2px; margin-bottom:10px; overflow:hidden; }
+.tour-progress-fill { height:100%; background:linear-gradient(90deg,var(--accent2),var(--accent4)); border-radius:2px; transition:width 0.5s ease; }
+.tour-close {
+  position:absolute; top:10px; right:10px; background:none; border:none; color:var(--text3);
+  cursor:pointer; font-size:18px; padding:4px; border-radius:4px; transition:var(--transition);
+}
+.tour-close:hover { color:var(--accent2); }
+.tour-skip { font-size:11px; color:var(--text3); cursor:pointer; text-decoration:underline; }
+.tour-skip:hover { color:var(--accent); }
+.tour-count { font-family:var(--font-mono); font-size:11px; color:var(--text3); }
+
+/* CERTIFICATE MODAL */
+.cert-modal {
+  position:fixed; top:0; left:0; width:100%; height:100%; z-index:2000;
+  background:rgba(0,0,0,0.96); display:none;
+  align-items:flex-start; justify-content:center;
+  overflow-y:auto; padding:30px 16px 60px;
+}
+.cert-modal.show { display:flex; }
+.cert-card {
+  background: linear-gradient(160deg, #0a1628 0%, #040d1e 60%, #0d1a30 100%);
+  border: 1px solid rgba(255,215,0,0.5); border-radius:24px; padding:0;
+  max-width:760px; width:100%; text-align:center; position:relative;
+  box-shadow: 0 0 80px rgba(255,215,0,0.2), 0 0 0 1px rgba(255,215,0,0.08) inset;
+  animation: certAppear 0.7s cubic-bezier(0.34,1.56,0.64,1);
+  overflow:hidden; margin:auto;
+}
+@keyframes certAppear { from{transform:scale(0.7) translateY(40px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+.cert-header-band {
+  background: linear-gradient(135deg, #0d2a4a, #1a0a30, #0a1628);
+  border-bottom: 1px solid rgba(255,215,0,0.2);
+  padding: 28px 40px 22px;
+  position:relative; overflow:hidden;
+}
+.cert-header-band::before {
+  content:''; position:absolute; top:-60px; left:-60px; width:200px; height:200px;
+  border-radius:50%; background:radial-gradient(circle, rgba(255,215,0,0.08), transparent 70%);
+}
+.cert-header-band::after {
+  content:''; position:absolute; bottom:-60px; right:-60px; width:200px; height:200px;
+  border-radius:50%; background:radial-gradient(circle, rgba(0,212,255,0.06), transparent 70%);
+}
+.cert-corner { position:absolute; width:40px; height:40px; }
+.cert-corner.tl { top:12px; left:12px; border-top:2px solid rgba(255,215,0,0.6); border-left:2px solid rgba(255,215,0,0.6); border-radius:4px 0 0 0; }
+.cert-corner.tr { top:12px; right:12px; border-top:2px solid rgba(255,215,0,0.6); border-right:2px solid rgba(255,215,0,0.6); border-radius:0 4px 0 0; }
+.cert-corner.bl { bottom:12px; left:12px; border-bottom:2px solid rgba(255,215,0,0.6); border-left:2px solid rgba(255,215,0,0.6); border-radius:0 0 0 4px; }
+.cert-corner.br { bottom:12px; right:12px; border-bottom:2px solid rgba(255,215,0,0.6); border-right:2px solid rgba(255,215,0,0.6); border-radius:0 0 4px 0; }
+.cert-seal { width:72px; height:72px; margin:0 auto 12px; position:relative; z-index:1; }
+.cert-seal svg { width:100%; height:100%; animation: rotateSeal 20s linear infinite; }
+.cert-seal-inner { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:28px; }
+@keyframes rotateSeal { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.cert-org { font-family:var(--font-title); font-size:clamp(16px,4vw,26px); font-weight:900; color:#ffd700; letter-spacing:4px; position:relative; z-index:1; }
+.cert-org-sub { font-family:var(--font-mono); font-size:10px; color:rgba(255,215,0,0.5); letter-spacing:6px; margin-top:4px; position:relative; z-index:1; }
+.cert-divider { height:1px; background:linear-gradient(90deg,transparent,rgba(255,215,0,0.4),transparent); margin:20px 40px; }
+.cert-body { padding:24px 40px 32px; }
+.cert-ribbon { display:inline-block; background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,140,0,0.1)); border:1px solid rgba(255,215,0,0.3); color:rgba(255,215,0,0.8); font-family:var(--font-mono); font-size:10px; letter-spacing:4px; padding:5px 20px; border-radius:20px; margin-bottom:16px; }
+.cert-presents { font-size:13px; color:rgba(255,255,255,0.5); margin-bottom:6px; font-style:italic; }
+.cert-name { font-family:var(--font-title); font-size:clamp(20px,5vw,36px); color:#fff; font-weight:900; margin:10px 0; text-shadow: 0 0 30px rgba(255,215,0,0.3); letter-spacing:2px; }
+.cert-course-label { font-size:11px; color:rgba(0,212,255,0.7); letter-spacing:3px; font-family:var(--font-mono); margin-bottom:6px; }
+.cert-course { font-size:clamp(13px,2vw,16px); color:#00d4ff; font-weight:700; margin-bottom:4px; }
+.cert-duration-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,61,113,0.15); border:1px solid rgba(255,61,113,0.3); border-radius:20px; padding:5px 16px; margin:12px 0; }
+.cert-duration-badge .hours { font-family:var(--font-title); font-size:18px; color:#ff3d71; font-weight:900; }
+.cert-duration-badge .hrs-label { font-size:11px; color:rgba(255,255,255,0.5); }
+.cert-desc-wrap { background:rgba(0,212,255,0.04); border:1px solid rgba(0,212,255,0.12); border-radius:12px; padding:18px 20px; margin:18px 0; text-align:left; }
+.cert-desc-title { font-family:var(--font-mono); font-size:9px; color:rgba(255,215,0,0.7); letter-spacing:3px; margin-bottom:12px; }
+.cert-topics { display:grid; grid-template-columns:1fr 1fr; gap:6px 16px; }
+.cert-topic { font-size:11px; color:rgba(224,240,255,0.75); display:flex; align-items:baseline; gap:6px; line-height:1.5; }
+.cert-topic::before { content:'▸'; color:#00d4ff; flex-shrink:0; font-size:10px; }
+.cert-topic strong { color:rgba(255,215,0,0.85); }
+.cert-footer-band {
+  border-top:1px solid rgba(255,215,0,0.15);
+  background:rgba(0,0,0,0.3);
+  padding:18px 40px;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+}
+.cert-sig { text-align:center; }
+.cert-sig-line { width:120px; height:1px; background:linear-gradient(90deg,transparent,rgba(255,215,0,0.5),transparent); margin:0 auto 6px; }
+.cert-sig-name { font-family:var(--font-title); font-size:12px; color:#ffd700; letter-spacing:1px; }
+.cert-sig-role { font-size:9px; color:rgba(255,255,255,0.4); margin-top:2px; }
+.cert-meta { text-align:right; }
+.cert-id-txt { font-family:var(--font-mono); font-size:9px; color:rgba(255,255,255,0.3); }
+.cert-date-txt { font-family:var(--font-mono); font-size:9px; color:rgba(255,255,255,0.3); margin-top:2px; }
+.cert-verified { display:inline-flex; align-items:center; gap:4px; font-size:9px; color:rgba(0,255,136,0.7); margin-top:4px; }
+.cert-close-btn {
+  position:fixed; top:16px; right:20px; z-index:2010;
+  background:rgba(0,0,0,0.7); border:1px solid rgba(255,215,0,0.4); color:#ffd700;
+  padding:8px 18px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:700;
+  transition:var(--transition); backdrop-filter:blur(10px);
+}
+.cert-close-btn:hover { background:rgba(255,215,0,0.1); }
+.cert-download {
+  background:linear-gradient(135deg,#ffd700,#ff8c00); color:#000; border:none;
+  padding:12px 28px; border-radius:10px; cursor:pointer; font-weight:900; font-size:13px;
+  margin-top:6px; transition:var(--transition); letter-spacing:1px;
+  display:flex; align-items:center; gap:8px; margin:16px auto 0; width:fit-content;
+}
+.cert-download:hover { transform:scale(1.04); box-shadow: 0 0 28px rgba(255,215,0,0.5); }
+
+.cert-name-input-wrap {
+  margin: 14px auto 0; max-width: 420px;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.cert-name-label { font-family:var(--font-mono); font-size:10px; color:rgba(255,215,0,0.6); letter-spacing:3px; }
+.cert-name-input {
+  width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,215,0,0.35);
+  border-radius:8px; padding:10px 16px; font-family:'Orbitron',monospace; font-size:16px;
+  color:#fff; text-align:center; letter-spacing:2px; outline:none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.cert-name-input:focus { border-color:rgba(255,215,0,0.8); box-shadow: 0 0 16px rgba(255,215,0,0.2); }
+.cert-name-input::placeholder { color:rgba(255,255,255,0.2); font-size:13px; letter-spacing:1px; font-family:sans-serif; }
+
+.confetti { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:2001; }
+
+/* MODAL */
+.modal-overlay {
+  position:fixed; top:0; left:0; width:100%; height:100%; z-index:500;
+  background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center;
+  padding:20px; backdrop-filter:blur(4px);
+}
+.modal-overlay.show { display:flex; }
+.modal-box {
+  background:linear-gradient(135deg,var(--panel),var(--panel2));
+  border:1px solid var(--border2); border-radius:16px; padding:24px;
+  max-width:480px; width:100%; position:relative;
+  animation: tourCardIn 0.3s ease;
+}
+.light-mode .modal-box { background:linear-gradient(135deg,#ffffff,#eef4fc); }
+.modal-close { position:absolute; top:12px; right:16px; background:none; border:none; color:var(--text3); font-size:20px; cursor:pointer; }
+.modal-icon { font-size:36px; margin-bottom:10px; }
+.modal-title { font-family:var(--font-title); font-size:14px; color:var(--accent); margin-bottom:12px; letter-spacing:1px; }
+.modal-body { font-size:13px; color:var(--text2); line-height:1.8; }
+.modal-tech { font-family:var(--font-mono); font-size:10px; background:rgba(0,212,255,0.08); border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:12px; color:var(--accent3); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:rgba(0,0,0,0.2); }
+::-webkit-scrollbar-thumb { background:var(--accent); border-radius:2px; }
+
+/* TOAST */
+.toast {
+  position:fixed; bottom:20px; right:20px; z-index:300;
+  background:linear-gradient(135deg,var(--panel),var(--panel2));
+  border:1px solid var(--border2); border-radius:10px; padding:12px 20px;
+  font-size:12px; font-family:var(--font-mono); box-shadow:var(--glow);
+  animation: toastIn 0.3s ease; max-width:300px;
+}
+.toast.success { border-color:var(--accent3); color:var(--accent3); }
+.toast.error { border-color:var(--accent2); color:var(--accent2); }
+@keyframes toastIn { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+/* RIPPLE */
+.ripple { position:absolute; border-radius:50%; background:rgba(0,212,255,0.2); animation:rippleAnim 0.6s ease-out; pointer-events:none; }
+@keyframes rippleAnim { from{width:0;height:0;opacity:1} to{width:200px;height:200px;opacity:0;margin-left:-100px;margin-top:-100px} }
+
+/* LIVE LOG */
+.live-log { font-family:var(--font-mono); font-size:10px; background:rgba(0,0,0,0.3); border-radius:6px; padding:8px; max-height:80px; overflow-y:auto; }
+.log-line { color:var(--accent3); padding:1px 0; }
+.log-line.warn { color:var(--accent4); }
+.log-line.err { color:var(--accent2); }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .main-container {
+    grid-template-areas:
+      "hero hero"
+      "modules modules"
+      "alerts timeline"
+      "ueba ueba"
+      "playbook playbook"
+      "threat threat"
+      "soar soar"
+      "intel intel";
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .main-container {
+    grid-template-areas:
+      "hero" "modules" "alerts" "timeline" "ueba" "playbook" "threat" "soar" "intel";
+    grid-template-columns: 1fr;
+    padding:8px;
+  }
+  .topbar { padding:6px 10px; }
+  .logo-sub { display:none; }
+  .hero-stats { justify-content:center; }
+  .modules-grid { grid-template-columns: repeat(3,1fr); }
+}
+
+.scan-line {
+  position:fixed; top:0; left:0; width:100%; height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  animation: scanDown 4s linear infinite; pointer-events:none; z-index:50; opacity:0.4;
+}
+@keyframes scanDown { from{top:0} to{top:100vh} }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="scan-line"></div>
+<canvas class="bg-particles" id="particles"></canvas>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo-area">
+    <div class="logo-icon">🛡️</div>
+    <div>
+      <div class="logo-text">SIEM/SOAR <span>Be Safe</span></div>
+      <div class="logo-sub"><span class="status-dot"></span>SISTEMA OPERACIONAL • ALL SYSTEMS NOMINAL</div>
+    </div>
+  </div>
+  <div class="topbar-controls">
+    <div class="datetime" id="clock"></div>
+    <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">🌙 Dark</button>
+    <button class="btn-icon" onclick="toggleMute()" id="muteBtn">🔊 Som</button>
+    <button class="btn-tour" onclick="startTour()">🎯 INICIAR TOUR</button>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker">
+    <span class="ticker-item">⚠️ ALERTA CRÍTICO: Tentativa de movimento lateral detectada — <span>10.0.1.45 → 10.0.1.80</span></span>
+    <span class="ticker-item">🔴 UEBA: Score de risco elevado para usuário <span>a.silva@corp.com</span> — 94/100</span>
+    <span class="ticker-item">🟡 EDR: Processo suspeito encerrado em <span>WORKSTATION-042</span> • Playbook ISOLAMENTO iniciado</span>
+    <span class="ticker-item">🔵 SOAR: Ticket #2847 fechado automaticamente — falso positivo confirmado</span>
+    <span class="ticker-item">🔴 TI: IOC match — IP <span>185.220.101.47</span> vinculado a C2 APT29</span>
+    <span class="ticker-item">🟢 MFA: 1.247 autenticações processadas com sucesso nas últimas 24h</span>
+    <span class="ticker-item">⚠️ ALERTA CRÍTICO: Tentativa de movimento lateral detectada — <span>10.0.1.45 → 10.0.1.80</span></span>
+    <span class="ticker-item">🔴 UEBA: Score de risco elevado para usuário <span>a.silva@corp.com</span> — 94/100</span>
+    <span class="ticker-item">🟡 EDR: Processo suspeito encerrado em <span>WORKSTATION-042</span> • Playbook ISOLAMENTO iniciado</span>
+    <span class="ticker-item">🔵 SOAR: Ticket #2847 fechado automaticamente — falso positivo confirmado</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-container">
+
+  <!-- HERO -->
+  <div class="hero-panel panel" id="hero-panel">
+    <div>
+      <div style="font-family:var(--font-title);font-size:clamp(10px,2vw,13px);color:var(--accent2);letter-spacing:3px;margin-bottom:8px">⚡ PAINEL DE CONTROLE OPERACIONAL</div>
+      <div class="hero-stats">
+        <div class="stat-card" onclick="showModal('events')">
+          <div class="stat-val blue" id="cnt-events">1,284,931</div>
+          <div class="stat-label">EVENTOS/DIA</div>
+        </div>
+        <div class="stat-card" onclick="showModal('alerts-modal')">
+          <div class="stat-val red" id="cnt-alerts">47</div>
+          <div class="stat-label">ALERTAS ATIVOS</div>
+        </div>
+        <div class="stat-card" onclick="showModal('incidents')">
+          <div class="stat-val yellow" id="cnt-inc">12</div>
+          <div class="stat-label">INCIDENTES</div>
+        </div>
+        <div class="stat-card" onclick="showModal('mttd')">
+          <div class="stat-val green">4.2<span style="font-size:14px">m</span></div>
+          <div class="stat-label">MTTD</div>
+        </div>
+        <div class="stat-card" onclick="showModal('mttr')">
+          <div class="stat-val blue">18<span style="font-size:14px">m</span></div>
+          <div class="stat-label">MTTR</div>
+        </div>
+      </div>
+    </div>
+    <div class="threat-level">
+      <div>
+        <div class="threat-ring" id="threat-ring">
+          <svg width="90" height="90" viewBox="0 0 90 90">
+            <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,61,113,0.15)" stroke-width="8"/>
+            <circle cx="45" cy="45" r="38" fill="none" stroke="url(#threatGrad)" stroke-width="8"
+              stroke-dasharray="238.76" stroke-dashoffset="57" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="threatGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff3d71"/>
+                <stop offset="100%" stop-color="#ffd700"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="threat-ring-inner">
+            <div class="val">76</div>
+            <div class="lbl">RISCO</div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--accent2);text-align:center;margin-top:6px;font-weight:700">⚠ ELEVADO</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;margin-bottom:8px">Fontes de Log Ativas</div>
+        <div class="live-log" id="live-log">
+          <div class="log-line">[SIEM] Normalizando 4.2k EPS...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULES -->
+  <div class="panel modules-panel" id="modules-panel">
+    <div class="panel-header">
+      <div class="panel-title">⚙ MÓDULOS SIEM/SOAR</div>
+      <div class="panel-badge green">ALL ACTIVE</div>
+    </div>
+    <div class="modules-grid">
+      <div class="module-card active" onclick="showModuleDetail('siem')" id="mod-siem">
+        <div class="module-pulse on"></div>
+        <div class="module-icon">🔍</div>
+        <div class="module-name">SIEM Core</div>
+        <div class="module-status">Correlation Engine</div>
+      </div>
+      <div class="module-card active" onclick="showModuleDetail('ueba')" id="mod-ueba">
+        <div class="module-pulse on"></div>
+        <div class="module-icon">🧠</div>
+        <div class="module-name">UEBA</div>
+        <div class="module-status">ML Behavior</div>
+      </div>
+      <div class="module-card active" onclick="showModuleDetail('soar')" id="mod-soar">
+        <div class="module-pulse on"></div>
+        <div class="module-icon">⚡</div>
+        <div class="module-name">SOAR</div>
+        <div class="module-status">Automation</div>
+      </div>
+      <div class="module-card active" onclick="showModuleDetail('ti')" id="mod-ti">
+        <div class="module-pulse on"></div>
+        <div class="module-icon">🌐</div>
+        <div class="module-name">Threat Intel</div>
+        <div class="module-status">TIP / CTI</div>
+      </div>
+      <div class="module-card danger" onclick="showModuleDetail('edr')" id="mod-edr">
+        <div class="module-pulse alert"></div>
+        <div class="module-icon">💻</div>
+        <div class="module-name">EDR/XDR</div>
+        <div class="module-status">3 Alertas</div>
+      </div>
+      <div class="module-card active" onclick="showModuleDetail('casb')" id="mod-casb">
+        <div class="module-pulse on"></div>
+        <div class="module-icon">☁️</div>
+        <div class="module-name">CASB</div>
+        <div class="module-status">Cloud Security</div>
+      </div>
+      <div class="module-card active" onclick="showModuleDetail('asm')" id="mod-asm">
+        <div class="module-pulse warn"></div>
+        <div class="module-icon">🗺️</div>
+        <div class="module-name">ASM</div>
+        <div class="module-status">Attack Surface</div>
+      </div>
+      <div class="module-card active" onclick="showModuleDetail('nta')" id="mod-nta">
+        <div class="module-pulse on"></div>
+        <div class="module-icon">📡</div>
+        <div class="module-name">NTA/NDR</div>
+        <div class="module-status">Network Traffic</div>
+      </div>
+      <div class="module-card active" onclick="showModuleDetail('vuln')" id="mod-vuln">
+        <div class="module-pulse on"></div>
+        <div class="module-icon">🔒</div>
+        <div class="module-name">Vulnerability</div>
+        <div class="module-status">Mgmt</div>
+      </div>
+      <div class="module-card active" onclick="showModuleDetail('dlp')" id="mod-dlp">
+        <div class="module-pulse on"></div>
+        <div class="module-icon">🛡️</div>
+        <div class="module-name">DLP</div>
+        <div class="module-status">Data Protection</div>
+      </div>
+      <div class="module-card active" onclick="showModuleDetail('identity')" id="mod-identity">
+        <div class="module-pulse on"></div>
+        <div class="module-icon">🪪</div>
+        <div class="module-name">Identity</div>
+        <div class="module-status">ITDR / IAM</div>
+      </div>
+      <div class="module-card active" onclick="showModuleDetail('compliance')" id="mod-compliance">
+        <div class="module-pulse on"></div>
+        <div class="module-icon">📋</div>
+        <div class="module-name">Compliance</div>
+        <div class="module-status">GRC / Audit</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div class="panel alerts-panel" id="alerts-panel">
+    <div class="panel-header">
+      <div class="panel-title">🚨 FILA DE ALERTAS</div>
+      <div class="panel-badge">47 ATIVOS</div>
+    </div>
+    <div class="alert-list" id="alert-list"></div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="panel timeline-panel" id="timeline-panel">
+    <div class="panel-header">
+      <div class="panel-title">⏱ TIMELINE DO ATAQUE</div>
+      <div class="panel-badge yellow">MITRE ATT&CK</div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+
+  <!-- UEBA -->
+  <div class="panel ueba-panel" id="ueba-panel">
+    <div class="panel-header">
+      <div class="panel-title">🧠 UEBA — ANÁLISE COMPORTAMENTAL</div>
+      <div class="panel-badge">ML ATIVO</div>
+    </div>
+    <div class="ueba-user-list" id="ueba-list"></div>
+  </div>
+
+  <!-- PLAYBOOK -->
+  <div class="panel playbook-panel" id="playbook-panel">
+    <div class="panel-header">
+      <div class="panel-title">📖 PLAYBOOKS DE RESPOSTA</div>
+      <div class="panel-badge green">8 ATIVOS</div>
+    </div>
+    <div class="playbook-list" id="playbook-list"></div>
+  </div>
+
+  <!-- THREAT HUNT -->
+  <div class="panel hunt-panel" id="hunt-panel">
+    <div class="panel-header">
+      <div class="panel-title">🔎 THREAT HUNTING — XQL</div>
+      <div class="panel-badge yellow">LIVE QUERY</div>
+    </div>
+    <div class="hunt-query">
+      <input class="hunt-input" id="hunt-input" value='dataset=xdr_data | filter event_type = "PROCESS" | filter causality_actor_process_image_sha256 != null' placeholder="Digite uma query XQL...">
+      <button class="hunt-btn" onclick="runHunt()">▶ EXECUTAR</button>
+    </div>
+    <div class="hunt-results" id="hunt-results"></div>
+  </div>
+
+  <!-- SOAR -->
+  <div class="panel soar-panel" id="soar-panel">
+    <div class="panel-header">
+      <div class="panel-title">⚡ SOAR — ORQUESTRAÇÃO AUTOMATIZADA</div>
+      <div class="panel-badge green">READY</div>
+    </div>
+    <div class="soar-workflow" id="soar-workflow"></div>
+    <div class="soar-controls">
+      <button class="soar-btn start" onclick="runSOAR()">▶ EXECUTAR PLAYBOOK</button>
+      <button class="soar-btn reset" onclick="resetSOAR()">↺ RESET</button>
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);align-self:center" id="soar-status">Aguardando execução...</span>
+    </div>
+  </div>
+
+  <!-- INTEL -->
+  <div class="panel intel-panel" id="intel-panel">
+    <div class="panel-header">
+      <div class="panel-title">🌐 THREAT INTELLIGENCE — IOCs</div>
+      <div class="panel-badge">LIVE FEED</div>
+    </div>
+    <div class="ioc-grid" id="ioc-grid"></div>
+  </div>
+
+</div>
+
+<!-- TOUR OVERLAY -->
+<div class="tour-overlay" id="tourOverlay">
+  <div class="tour-backdrop" onclick="closeTour()"></div>
+  <div class="tour-highlight" id="tourHighlight"></div>
+  <div class="tour-card" id="tourCard" style="display:none">
+    <button class="tour-close" onclick="closeTour()">✕</button>
+    <div class="tour-progress-bar"><div class="tour-progress-fill" id="tourProgress"></div></div>
+    <div class="tour-card-header">
+      <div class="tour-step-num" id="tourNum">1</div>
+      <div class="tour-card-title" id="tourTitle">Título</div>
+    </div>
+    <div class="tour-card-body" id="tourBody">Conteúdo</div>
+    <div class="tour-card-tech" id="tourTech">Ref. técnica</div>
+    <div class="tour-nav">
+      <button class="tour-arrow left" onclick="prevTour()" id="tourPrev" style="display:none">◀</button>
+      <div>
+        <div class="tour-count" id="tourCount">1 / 12</div>
+        <div class="tour-skip" onclick="closeTour()">Pular tour</div>
+      </div>
+      <button class="tour-arrow" onclick="nextTour()" id="tourNext">▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-icon" id="modalIcon">🔍</div>
+    <div class="modal-title" id="modalTitle">Título</div>
+    <div class="modal-body" id="modalBody">Conteúdo</div>
+    <div class="modal-tech" id="modalTech"></div>
+  </div>
+</div>
+
+<!-- CERTIFICATE -->
+<div class="cert-modal" id="certModal">
+  <canvas class="confetti" id="confettiCanvas"></canvas>
+  <button class="cert-close-btn" onclick="closeCert()">✕ FECHAR</button>
+  <div class="cert-card" id="certCard">
+    <!-- Corner decorations -->
+    <div class="cert-corner tl"></div><div class="cert-corner tr"></div>
+    <div class="cert-corner bl"></div><div class="cert-corner br"></div>
+
+    <!-- Header band -->
+    <div class="cert-header-band">
+      <div class="cert-seal">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="36,2 43,14 57,10 55,24 68,30 60,42 68,54 55,56 57,70 43,66 36,78 29,66 15,70 17,56 4,54 12,42 4,30 17,24 15,10 29,14" fill="none" stroke="rgba(255,215,0,0.35)" stroke-width="1.5"/>
+          <polygon points="36,8 42,18 54,15 52,27 63,32 56,42 63,52 52,54 54,66 42,63 36,73 30,63 18,66 20,54 9,52 16,42 9,32 20,27 18,15 30,18" fill="none" stroke="rgba(255,215,0,0.2)" stroke-width="1"/>
+        </svg>
+        <div class="cert-seal-inner">🛡️</div>
+      </div>
+      <div class="cert-org">SIEM/SOAR BE SAFE</div>
+      <div class="cert-org-sub">CENTRO DE EXCELÊNCIA EM CIBERSEGURANÇA</div>
+    </div>
+
+    <div class="cert-divider"></div>
+
+    <!-- Body -->
+    <div class="cert-body">
+      <div class="cert-ribbon">CERTIFICADO DE CONCLUSÃO</div>
+      <div class="cert-presents">Este certificado é conferido a</div>
+      <div class="cert-name-input-wrap">
+        <div class="cert-name-label">✦ SEU NOME COMPLETO ✦</div>
+        <input class="cert-name-input" id="certNameInput" type="text" maxlength="40" placeholder="Digite seu nome aqui..." oninput="updateCertName(this.value)" />
+      </div>
+      <div class="cert-name" id="certNameDisplay" style="min-height:1.2em">Seu Nome Aqui</div>
+      <div class="cert-course-label">CURSO CONCLUÍDO</div>
+      <div class="cert-course">Tour Guiado: Plataforma SIEM/SOAR Enterprise</div>
+      <div class="cert-duration-badge">
+        <span class="hours">1h</span>
+        <span class="hrs-label">carga horária</span>
+      </div>
+
+      <div class="cert-desc-wrap">
+        <div class="cert-desc-title">📚 CONTEÚDO APRENDIDO</div>
+        <div class="cert-topics">
+          <div class="cert-topic"><strong>SIEM Core</strong> Correlação e normalização de eventos em tempo real</div>
+          <div class="cert-topic"><strong>UEBA</strong> Análise comportamental com ML e peer group analysis</div>
+          <div class="cert-topic"><strong>SOAR</strong> Orquestração automatizada e playbooks de resposta</div>
+          <div class="cert-topic"><strong>Threat Intel</strong> IOCs, TTPs, feeds STIX/TAXII e scoring</div>
+          <div class="cert-topic"><strong>Threat Hunting</strong> Queries XQL proativas baseadas em MITRE</div>
+          <div class="cert-topic"><strong>EDR/XDR</strong> Detecção em endpoint e resposta forense</div>
+          <div class="cert-topic"><strong>MITRE ATT&amp;CK</strong> Mapeamento de táticas e técnicas de ataque</div>
+          <div class="cert-topic"><strong>Playbooks</strong> Resposta a incidentes e contenção de ameaças</div>
+          <div class="cert-topic"><strong>Compliance</strong> ISO 27001, NIST CSF, SOC2, LGPD e GRC</div>
+          <div class="cert-topic"><strong>Métricas SOC</strong> MTTD, MTTR e KPIs operacionais</div>
+        </div>
+      </div>
+
+      <button class="cert-download" onclick="downloadCertPNG()">📥 BAIXAR CERTIFICADO (.PNG)</button>
+    </div>
+
+    <div class="cert-divider"></div>
+
+    <!-- Footer -->
+    <div class="cert-footer-band">
+      <div class="cert-sig">
+        <div class="cert-sig-line"></div>
+        <div class="cert-sig-name">Mariana BS</div>
+        <div class="cert-sig-role">Instrutora Sênior • SIEM/SOAR Be Safe</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:9px;color:rgba(255,255,255,0.3);font-family:var(--font-mono);letter-spacing:2px">VERIFICADO</div>
+        <div class="cert-verified">✅ Autêntico</div>
+      </div>
+      <div class="cert-meta">
+        <div class="cert-id-txt">ID: #SIEM-<span id="certId"></span></div>
+        <div class="cert-date-txt" id="certDate"></div>
+        <div class="cert-verified">🔒 Assinado digitalmente</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast" style="display:none"></div>
+
+<script>
+// ============ AUDIO ENGINE ============
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+let muted = false;
+
+function initAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new AudioCtx(); } catch(e) { return; }
+  }
+}
+
+function playBeep(freq=440, dur=0.1, type='sine', vol=0.1) {
+  if (muted || !audioCtx) return;
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  } catch(e){}
+}
+
+function playAlert() {
+  if (muted) return;
+  [880,660,880].forEach((f,i) => {
+    setTimeout(() => playBeep(f, 0.15, 'sawtooth', 0.08), i*150);
+  });
+}
+
+function playSuccess() {
+  if (muted) return;
+  [523,659,784,1047].forEach((f,i) => {
+    setTimeout(() => playBeep(f, 0.2, 'sine', 0.07), i*100);
+  });
+}
+
+function playClick() { playBeep(800, 0.05, 'square', 0.05); }
+function playError() { playBeep(200, 0.3, 'sawtooth', 0.1); }
+function playNotif() { playBeep(1200, 0.08, 'sine', 0.06); setTimeout(()=>playBeep(900,0.1,'sine',0.04),100); }
+
+function toggleMute() {
+  initAudio();
+  muted = !muted;
+  document.getElementById('muteBtn').textContent = muted ? '🔇 Mudo' : '🔊 Som';
+  if (!muted) playSuccess();
+}
+
+// ============ THEME ============
+let darkMode = true;
+function toggleTheme() {
+  playClick();
+  darkMode = !darkMode;
+  document.body.classList.toggle('light-mode', !darkMode);
+  document.getElementById('themeBtn').textContent = darkMode ? '🌙 Dark' : '☀️ Light';
+}
+
+// ============ CLOCK ============
+function updateClock() {
+  const n = new Date();
+  document.getElementById('clock').innerHTML =
+    `${n.toLocaleDateString('pt-BR')}<br><b>${n.toLocaleTimeString('pt-BR')}</b> UTC-3`;
+}
+updateClock(); setInterval(updateClock, 1000);
+
+// ============ PARTICLES ============
+const canvas = document.getElementById('particles');
+const ctx2 = canvas.getContext('2d');
+let particles = [];
+function resizeCanvas() { canvas.width=innerWidth; canvas.height=innerHeight; }
+resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random()*canvas.width;
+    this.y = Math.random()*canvas.height;
+    this.vx = (Math.random()-0.5)*0.3;
+    this.vy = (Math.random()-0.5)*0.3;
+    this.r = Math.random()*1.5+0.5;
+    this.a = Math.random()*0.5;
+  }
+  update() {
+    this.x+=this.vx; this.y+=this.vy;
+    if(this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height) this.reset();
+  }
+  draw() {
+    ctx2.beginPath();
+    ctx2.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx2.fillStyle = darkMode ? `rgba(0,212,255,${this.a})` : `rgba(0,102,204,${this.a*0.5})`;
+    ctx2.fill();
+  }
+}
+for(let i=0;i<80;i++) particles.push(new Particle());
+function animParticles() {
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{p.update();p.draw();});
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+// ============ TOAST ============
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type}`;
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none', 3000);
+}
+
+// ============ ALERTS DATA ============
+const alertsData = [
+  {sev:'crit',label:'CRÍTICO',title:'Movimento Lateral Detectado',meta:'10.0.1.45 → 10.0.1.80 • T1021.002 • há 2min'},
+  {sev:'crit',label:'CRÍTICO',title:'Exfiltração de Dados — DNS Tunneling',meta:'host: fin-srv-03 • T1048.003 • há 5min'},
+  {sev:'med',label:'MÉDIO',title:'Brute Force em SSH Detectado',meta:'src: 185.220.101.47 • 847 tentativas • há 12min', cls:'medium'},
+  {sev:'low',label:'BAIXO',title:'Anomalia de Horário de Login',meta:'user: b.santos • 03:42 UTC • UEBA Score: 72', cls:'low'},
+  {sev:'crit',label:'CRÍTICO',title:'Ransomware — Extensões Suspeitas',meta:'WORKSTATION-042 • 1.847 arquivos • há 1min'},
+  {sev:'med',label:'MÉDIO',title:'Download Massivo no SharePoint',meta:'user: c.ferreira • 4.2GB • T1039 • há 18min', cls:'medium'},
+  {sev:'low',label:'INFO',title:'Nova Regra Correlation Criada',meta:'admin: mariana.bs • rule_id: CR-2947', cls:'info'},
+];
+
+function renderAlerts() {
+  const el = document.getElementById('alert-list');
+  el.innerHTML = alertsData.map(a => `
+    <div class="alert-item ${a.cls||''}" onclick="playAlert();showToast('Investigando: ${a.title}')">
+      <div class="alert-sev sev-${a.sev}">${a.label}</div>
+      <div class="alert-body">
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-meta">${a.meta}</div>
+      </div>
+    </div>
+  `).join('');
+}
+renderAlerts();
+
+// Simulate new alert
+setInterval(() => {
+  const a = alertsData[Math.floor(Math.random()*3)];
+  const list = document.getElementById('alert-list');
+  const div = document.createElement('div');
+  div.className = `alert-item ${a.cls||''}`;
+  div.innerHTML = `<div class="alert-sev sev-${a.sev}">NOVO</div><div class="alert-body"><div class="alert-title">${a.title}</div><div class="alert-meta">${new Date().toLocaleTimeString()}</div></div>`;
+  list.insertBefore(div, list.firstChild);
+  if(list.children.length > 10) list.removeChild(list.lastChild);
+  if(!muted) playNotif();
+}, 12000);
+
+// ============ TIMELINE ============
+const timelineData = [
+  {color:'red',time:'03:41:02',text:'Initial Access — Phishing com macro VBA (T1566.001)'},
+  {color:'red',time:'03:43:18',text:'Execution — PowerShell obfuscado (T1059.001)'},
+  {color:'yellow',time:'03:47:55',text:'Persistence — Scheduled Task criado (T1053.005)'},
+  {color:'yellow',time:'03:52:11',text:'Privilege Escalation — Token Impersonation (T1134)'},
+  {color:'red',time:'04:01:34',text:'Lateral Movement — WMI para DC (T1021.006)'},
+  {color:'',time:'04:08:22',text:'Collection — Dump de credenciais LSASS (T1003.001)'},
+  {color:'',time:'04:15:09',text:'Exfiltration — DNS tunneling ativo (T1048.003)'},
+];
+
+function renderTimeline() {
+  document.getElementById('timeline').innerHTML = timelineData.map(t=>`
+    <div class="tl-item">
+      <div class="tl-dot ${t.color}"></div>
+      <div class="tl-body">
+        <div class="tl-time">${t.time}</div>
+        <div class="tl-text">${t.text}</div>
+      </div>
+    </div>
+  `).join('');
+}
+renderTimeline();
+
+// ============ UEBA ============
+const uebaData = [
+  {name:'A. Silva',role:'Analista Financeiro',avatar:'👤',risk:94,color:'#ff3d71'},
+  {name:'B. Santos',role:'Desenvolvedor',avatar:'👩',risk:71,color:'#ffd700'},
+  {name:'C. Ferreira',role:'RH Manager',avatar:'👨',risk:58,color:'#ffd700'},
+  {name:'D. Costa',role:'Estagiário TI',avatar:'🧑',risk:23,color:'#00ff88'},
+  {name:'E. Lima',role:'Diretor Financeiro',avatar:'👴',risk:41,color:'#00d4ff'},
+];
+
+function renderUEBA() {
+  document.getElementById('ueba-list').innerHTML = uebaData.map(u=>`
+    <div class="ueba-user" onclick="playClick();showUEBADetail('${u.name}')">
+      <div class="ueba-avatar" style="background:${u.color}22;border:2px solid ${u.color}">${u.avatar}</div>
+      <div class="ueba-info">
+        <div class="ueba-name">${u.name}</div>
+        <div class="ueba-role">${u.role}</div>
+      </div>
+      <div class="ueba-risk">
+        <div class="risk-score" style="color:${u.color}">${u.risk}</div>
+        <div class="risk-bar" style="width:80px">
+          <div class="risk-fill" style="width:${u.risk}%;background:${u.color}"></div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+renderUEBA();
+
+function showUEBADetail(name) {
+  const u = uebaData.find(x=>x.name===name);
+  showModal('ueba-user', {name, risk:u.risk, role:u.role});
+}
+
+// ============ PLAYBOOKS ============
+const playbooksData = [
+  {name:'Contenção de Ransomware',actions:'12 ações',pct:0,tags:['EDR','Firewall','AD']},
+  {name:'Investigação de Phishing',actions:'8 ações',pct:0,tags:['Email','Sandbox','OSINT']},
+  {name:'Bloqueio de Conta Comprometida',actions:'6 ações',pct:0,tags:['IAM','MFA','LDAP']},
+  {name:'Resposta a DDoS',actions:'9 ações',pct:0,tags:['WAF','CDN','NetOps']},
+];
+
+function renderPlaybooks() {
+  document.getElementById('playbook-list').innerHTML = playbooksData.map((p,i)=>`
+    <div class="pb-item" onclick="runPlaybook(${i})">
+      <div class="pb-header">
+        <div class="pb-name">${p.name}</div>
+        <div class="pb-actions">${p.actions}</div>
+      </div>
+      <div class="pb-tags">${p.tags.map(t=>`<span class="pb-tag">${t}</span>`).join('')}</div>
+      <div class="pb-progress"><div class="pb-fill" id="pb-fill-${i}" style="width:${p.pct}%"></div></div>
+      <button class="run-btn" onclick="event.stopPropagation();runPlaybook(${i})">▶ EXECUTAR</button>
+    </div>
+  `).join('');
+}
+renderPlaybooks();
+
+function runPlaybook(i) {
+  playSuccess();
+  playbooksData[i].pct = 0;
+  const fill = document.getElementById(`pb-fill-${i}`);
+  let pct = 0;
+  const iv = setInterval(()=>{
+    pct += Math.random()*15+5;
+    if(pct>=100){ pct=100; clearInterval(iv); showToast(`✅ Playbook "${playbooksData[i].name}" concluído!`); playSuccess(); }
+    fill.style.width = pct+'%';
+  }, 300);
+  showToast(`▶ Executando: ${playbooksData[i].name}`);
+}
+
+// ============ HUNT ============
+const huntOutputs = [
+  '> Conectando ao dataset xdr_data...',
+  '> Filtrando eventos de processo com SHA256 não nulo...',
+  '> [MATCH] PID:4821 • svchost.exe • SHA256: d8f3a9...2b1c • 10.0.1.45',
+  '> [MATCH] PID:3301 • powershell.exe • args: -enc JABz... • SUSPICIOUS',
+  '> [MATCH] PID:9042 • cmd.exe • parent: winword.exe • T1204.002',
+  '> [MATCH] PID:1172 • wmic.exe • cmd: process call create • LATERAL',
+  '> Total: 4 eventos suspeitos encontrados em 1.284 analisados',
+  '> Criando alert correlacionado: HUNT-2947',
+];
+
+function runHunt() {
+  playClick();
+  const r = document.getElementById('hunt-results');
+  r.innerHTML = '';
+  let i=0;
+  const q = document.getElementById('hunt-input').value;
+  const iv = setInterval(()=>{
+    if(i>=huntOutputs.length){clearInterval(iv);playSuccess();return;}
+    const d=document.createElement('div');
+    d.className='hunt-line'+(huntOutputs[i].includes('MATCH')||huntOutputs[i].includes('SUSPICIOUS')||huntOutputs[i].includes('LATERAL')?' err':'');
+    if(huntOutputs[i].includes('MATCH')||huntOutputs[i].includes('SUSPICIOUS')||huntOutputs[i].includes('LATERAL')){
+      const parts = huntOutputs[i].split(' • ');
+      d.innerHTML = parts.map((p,j)=>j===0?`<span>${p}</span>`:p).join(' • ');
+    } else { d.textContent=huntOutputs[i]; }
+    r.appendChild(d); r.scrollTop=r.scrollHeight; i++;
+  }, 250);
+}
+
+// ============ SOAR WORKFLOW ============
+const soarSteps = [
+  {icon:'🚨',name:'Trigger',status:'Alerta Detectado'},
+  {icon:'📋',name:'Enriquecer',status:'CTI / Whois'},
+  {icon:'⚖️',name:'Triagem',status:'Severidade'},
+  {icon:'🔒',name:'Conter',status:'Isolar Host'},
+  {icon:'📧',name:'Notificar',status:'SOC / ITSM'},
+  {icon:'🔍',name:'Investigar',status:'Forense'},
+  {icon:'✅',name:'Resolver',status:'Fechar Ticket'},
+];
+
+function renderSOAR() {
+  document.getElementById('soar-workflow').innerHTML = soarSteps.map((s,i)=>`
+    ${i>0?'<div class="workflow-arrow">→</div>':''}
+    <div class="workflow-step" id="ws-${i}" onclick="playClick();showToast('Etapa: ${s.name} — ${s.status}')">
+      <div class="ws-icon">${s.icon}</div>
+      <div class="ws-name">${s.name}</div>
+      <div class="ws-status">${s.status}</div>
+    </div>
+  `).join('');
+}
+renderSOAR();
+
+function runSOAR() {
+  playSuccess();
+  soarSteps.forEach((_,i)=>{ const el=document.getElementById(`ws-${i}`); el.className='workflow-step'; });
+  document.getElementById('soar-status').textContent='Executando...';
+  let i=0;
+  const iv = setInterval(()=>{
+    if(i>0) document.getElementById(`ws-${i-1}`).className='workflow-step done';
+    if(i>=soarSteps.length){ clearInterval(iv); document.getElementById('soar-status').textContent='✅ Concluído em 4.7s'; playSuccess(); return; }
+    document.getElementById(`ws-${i}`).className='workflow-step running';
+    document.getElementById('soar-status').textContent=`Executando: ${soarSteps[i].name}...`;
+    playBeep(600+i*80, 0.1, 'sine', 0.05);
+    i++;
+  }, 650);
+}
+
+function resetSOAR() {
+  playClick();
+  soarSteps.forEach((_,i)=>document.getElementById(`ws-${i}`).className='workflow-step');
+  document.getElementById('soar-status').textContent='Aguardando execução...';
+}
+
+// ============ IOC GRID ============
+const iocs = [
+  {type:'IP MALICIOSO',val:'185.220.101.47',score:'ThreatScore: 98/100 • APT29 C2'},
+  {type:'DOMÍNIO',val:'evil-c2-update.ru',score:'Categoria: Malware • Confiança: Alta'},
+  {type:'SHA256',val:'d8f3a9...2b1c4e',score:'Ransomware Payload • VirusTotal: 61/71'},
+  {type:'EMAIL',val:'invoice@supl1er.xyz',score:'Phishing • OSINT confirmado'},
+  {type:'URL',val:'http://185.x.x.47/payload.ps1',score:'PowerShell dropper • T1059.001'},
+  {type:'CVE',val:'CVE-2024-21412',score:'CVSS 9.8 • Explorado ativamente'},
+];
+
+function renderIOC() {
+  document.getElementById('ioc-grid').innerHTML = iocs.map(ioc=>`
+    <div class="ioc-card" onclick="playClick();showToast('IOC copiado: ${ioc.val}')">
+      <div class="ioc-type">${ioc.type}</div>
+      <div class="ioc-val">${ioc.val}</div>
+      <div class="ioc-score">${ioc.score}</div>
+    </div>
+  `).join('');
+}
+renderIOC();
+
+// ============ LIVE LOG ============
+const logLines = [
+  {cls:'log-line',txt:'[SIEM] Normalizando 4.200 EPS de 23 fontes...'},
+  {cls:'log-line warn',txt:'[UEBA] Desvio detectado: a.silva • +340% accesses'},
+  {cls:'log-line err',txt:'[EDR] Hash match: d8f3a9...2b1c • ISOLANDO HOST'},
+  {cls:'log-line',txt:'[SOAR] Playbook #PB-047 iniciado automaticamente'},
+  {cls:'log-line',txt:'[TI] 12 novos IOCs ingeridos do feed MISP'},
+  {cls:'log-line warn',txt:'[NTA] Beacon pattern detectado: 60s interval'},
+  {cls:'log-line',txt:'[SIEM] Rule CR-2947 disparou: Lateral Movement'},
+];
+let logIdx=0;
+function addLog() {
+  const el = document.getElementById('live-log');
+  const d = document.createElement('div');
+  d.className = logLines[logIdx].cls;
+  d.textContent = logLines[logIdx].txt;
+  el.appendChild(d);
+  if(el.children.length>8) el.removeChild(el.firstChild);
+  el.scrollTop=el.scrollHeight;
+  logIdx=(logIdx+1)%logLines.length;
+}
+setInterval(addLog, 2500);
+
+// ============ COUNTER ANIMATION ============
+function animCounter(id, val) {
+  const el=document.getElementById(id);
+  const target = typeof val === 'string' ? parseInt(val.replace(/,/g,'')) : val;
+  let cur=0;
+  const step = target/60;
+  const iv = setInterval(()=>{
+    cur+=step; if(cur>=target){cur=target;clearInterval(iv);}
+    el.textContent=Math.floor(cur).toLocaleString('pt-BR');
+  },16);
+}
+setTimeout(()=>{animCounter('cnt-events',1284931);animCounter('cnt-alerts',47);animCounter('cnt-inc',12);},500);
+
+// ============ MODAL SYSTEM ============
+const modals = {
+  siem:{icon:'🔍',title:'SIEM CORE — Motor de Correlação',body:'O SIEM (Security Information and Event Management) coleta, normaliza e correlaciona eventos de segurança de múltiplas fontes. O motor de correlação aplica regras temporais, estatísticas e baseadas em comportamento para detectar ameaças em tempo real.',tech:'EPS: 4.200/s • Fontes: 23 • Regras ativas: 1.847 • Falso positivo: 2.3%\nNormalização: CEF/LEEF/JSON • Retenção: 365 dias (hot) / 7 anos (cold)'},
+  ueba:{icon:'🧠',title:'UEBA — User & Entity Behavior Analytics',body:'O UEBA utiliza Machine Learning para estabelecer baselines comportamentais de usuários e entidades. Detecta anomalias como acessos fora de horário, volume anômalo de downloads, logins impossíveis geograficamente e peer group deviations.',tech:'Algoritmos: Isolation Forest, LSTM, AutoEncoder\nScore computation: Weighted Risk Factor Model\nPeer groups: 47 definidos • Baseline: 30 dias'},
+  soar:{icon:'⚡',title:'SOAR — Security Orchestration, Automation & Response',body:'O SOAR orquestra respostas automatizadas a incidentes, integrando ferramentas de segurança via APIs. Playbooks codificam o conhecimento do analista para executar ações como isolamento de hosts, bloqueio de IPs e criação de tickets automaticamente.',tech:'Integrações: 200+ conectores (EDR, FW, IAM, ITSM)\nMTTR médio: 18min → 4min (com automação)\nPlaybooks ativos: 47 • Execuções hoje: 234'},
+  ti:{icon:'🌐',title:'THREAT INTELLIGENCE — Plataforma CTI',body:'A TIP (Threat Intelligence Platform) ingere feeds de inteligência de ameaças (OSINT, comerciais, governamentais), normaliza IOCs no formato STIX/TAXII e os distribui automaticamente para controles de segurança como NGFW, EDR e SIEM.',tech:'Feeds: 28 ativos (MISP, VirusTotal, Shodan, CISA)\nIOCs gerenciados: 4.2M • TTL médio: 72h\nAtores rastreados: 340 • Framework: STIX 2.1'},
+  edr:{icon:'💻',title:'EDR/XDR — Detecção e Resposta em Endpoint',body:'O EDR monitora endpoints com agentes leves, capturando telemetria de processos, rede e registro. O XDR expande essa visibilidade para email, cloud e identidade, permitindo correlação cruzada e resposta coordenada.',tech:'Agentes: 1.247 endpoints • OS: Win/Lin/macOS\nCapacidade: 10M eventos/s • CSPM integrado\nBehavioral AI: Detecção sem assinatura (fileless malware)'},
+  casb:{icon:'☁️',title:'CASB — Cloud Access Security Broker',body:'O CASB provê visibilidade e controle sobre o uso de aplicações cloud (Shadow IT), aplica políticas DLP em trânsito para SaaS (M365, Google Workspace, Salesforce) e detecta comportamentos anômalos em ambientes multi-cloud.',tech:'Apps monitoradas: 12.400 (shadow IT detectado: 834)\nPolíticas DLP ativas: 127 • Dados protegidos: 4.2TB\nModo: Inline (proxy) + API-based'},
+  asm:{icon:'🗺️',title:'ASM — Attack Surface Management',body:'O ASM mapeia continuamente a superfície de ataque externa da organização, descobrindo ativos expostos (subdomínios, IPs, certificados), identificando vulnerabilidades e correlacionando com inteligência de ameaças ativas.',tech:'Ativos descobertos: 3.847 • CVEs críticos: 23\nSubdomínios: 284 • Certificados expirados: 7\nVarredura: Contínua (24/7) • Integração: VM platform'},
+  nta:{icon:'📡',title:'NTA/NDR — Network Traffic Analysis',body:'O NTA/NDR analisa o tráfego de rede (East-West e North-South) em busca de padrões anômalos, beacons de C2, tunelamento em protocolos legítimos (DNS, HTTPS) e movimentos laterais. Utiliza ML para detecção sem assinaturas.',tech:'Throughput monitorado: 40 Gbps • Flows: 2.4M/s\nDetecção: ML + Regras • PCAP retention: 7 dias\nProtocolos: DNS, HTTP/S, SMB, RDP, SSH, Kerberos'},
+  vuln:{icon:'🔒',title:'VULNERABILITY MANAGEMENT',body:'A plataforma de VM realiza varreduras autenticadas e não-autenticadas, prioriza vulnerabilidades com base em CVSS + inteligência de exploração ativa (EPSS), e integra com o SOAR para remediação automatizada via tickets.',tech:'Ativos escaneados: 1.284 • CVEs rastreados: 189.394\nPriorização: CVSS + EPSS + Threat Context\nSLA crítico: 24h • Alto: 7d • Médio: 30d'},
+  dlp:{icon:'🛡️',title:'DLP — Data Loss Prevention',body:'O DLP monitora e controla o movimento de dados sensíveis (PII, PCI, IP) em endpoints, rede e cloud. Aplica políticas baseadas em classificação de dados, identidade e contexto, com capacidade de bloqueio em tempo real.',tech:'Políticas: 89 ativas • Incidentes hoje: 23\nClassificação: ML-based + regex + fingerprinting\nCanais: Email, Web, USB, Cloud, Print'},
+  identity:{icon:'🪪',title:'ITDR — Identity Threat Detection & Response',body:'O ITDR monitora infraestrutura de identidade (AD, Azure AD, Okta) para detectar ataques como Pass-the-Hash, Kerberoasting, Golden Ticket e takeover de contas privilegiadas. Integra com PAM e MFA para resposta imediata.',tech:'Contas monitoradas: 8.234 • Privilegiadas: 127\nDetecção: PTH, Kerberoasting, DCSync, LDAP recon\nIntegração: CyberArk PAM, Okta, Azure AD'},
+  compliance:{icon:'📋',title:'GRC — Governance, Risk & Compliance',body:'O módulo de compliance mapeia automaticamente controles de segurança para frameworks regulatórios (ISO 27001, NIST CSF, SOC2, PCI-DSS, LGPD), gera evidências de auditoria e calcula scores de maturidade.',tech:'Frameworks: ISO 27001, NIST CSF, SOC2 T2, PCI-DSS 4.0, LGPD\nControles mapeados: 1.247 • Cobertura: 94.3%\nÚltima auditoria: aprovada • Evidências: automáticas'},
+  events:{icon:'📊',title:'Volume de Eventos',body:'O SIEM processa 1.284.931 eventos diários de 23 fontes heterogêneas. Após normalização e deduplicação, apenas 47 alertas foram gerados — demonstrando eficiência na redução de ruído (taxa de supressão: 99.99%).',tech:'EPS médio: 4.200/s • Pico: 12.400/s\nCompressão: 1:1.000 (eventos → alertas)\nNormalização: CEF, LEEF, JSON, Syslog, Windows Events'},
+  'alerts-modal':{icon:'🚨',title:'Fila de Alertas Ativos',body:'47 alertas ativos após correlação e deduplicação. O motor de priorização combina severidade técnica (CVSS), contexto de negócio (criticidade do ativo), inteligência de ameaças e risco do usuário (UEBA score) para ordenação automática.',tech:'Priorização: CVSS × Asset Criticality × TI Context × UEBA Score\nFalso positivo rate: 2.3% • MTTD: 4.2min\nEscalonamento automático: Critical → SOC Tier 2 em 5min'},
+  incidents:{icon:'🔥',title:'Incidentes em Gestão',body:'12 incidentes ativos em diferentes estágios do ciclo de vida (Detecção → Contenção → Erradicação → Recuperação → Lições Aprendidas). O SOAR automatiza etapas repetitivas, permitindo foco analítico em investigação.',tech:'IR Lifecycle: NIST SP 800-61 Rev.2\nSLA Crítico: Contenção < 1h • Erradicação < 24h\nIntegração: ServiceNow, Jira, PagerDuty'},
+  mttd:{icon:'⚡',title:'MTTD — Mean Time to Detect',body:'MTTD de 4.2 minutos representa o tempo médio entre a ocorrência de um evento malicioso e sua detecção pelo SIEM. Sem automação, a média da indústria é 197 dias. Com SIEM+UEBA, reduzimos para minutos.',tech:'Benchmark setor: 197 dias (DBIR 2024)\nCom SIEM+UEBA: 4.2 minutos\nFatores: correlação em tempo real, ML behavioral, TI integrada'},
+  mttr:{icon:'🔧',title:'MTTR — Mean Time to Respond',body:'MTTR de 18 minutos mede o tempo do SOC para conter e resolver um incidente após detecção. O SOAR automatiza ~70% das ações, reduzindo o MTTR de horas para minutos e aliviando fadiga de analistas.',tech:'Benchmark setor: 17 horas (sem automação)\nCom SOAR: 18 minutos (redução de 94%)\nAutomação: 70% das ações sem intervenção humana'},
+  'ueba-user':{icon:'⚠️',title:'Análise UEBA',body:'Desvio comportamental significativo detectado. Logins fora do horário padrão, volume anômalo de downloads e acesso a recursos não habituais. Score de risco calculado por modelo de regressão logística com 47 features comportamentais.',tech:'Features: hora de acesso, volume de dados, geolocalização,\nrecursos acessados, peer group deviation, histórico 30d\nModelo: Ensemble (RF + LSTM + Isolation Forest)'},
+};
+
+function showModal(key, extra) {
+  initAudio(); playClick();
+  const data = modals[key] || {icon:'🔍',title:key,body:'Informação sobre '+key,tech:''};
+  document.getElementById('modalIcon').textContent = data.icon;
+  document.getElementById('modalTitle').textContent = data.title;
+  let body = data.body;
+  if(extra && extra.name) body = `<strong>${extra.name}</strong> • ${extra.role}<br><br>` + body + `<br><br>Risk Score atual: <strong style="color:${extra.risk>80?'var(--accent2)':extra.risk>60?'var(--accent4)':'var(--accent3)'}">${extra.risk}/100</strong>`;
+  document.getElementById('modalBody').innerHTML = body;
+  document.getElementById('modalTech').textContent = data.tech;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function showModuleDetail(key) { showModal(key); }
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  playClick();
+}
+
+// ============ TOUR SYSTEM ============
+const tourSteps = [
+  {
+    target:'hero-panel',
+    title:'Painel Executivo SOC',
+    body:'O painel central exibe métricas operacionais em tempo real. Volume de eventos, alertas ativos, incidentes em investigação e os indicadores-chave MTTD e MTTR — fundamentais para medir a eficiência do SOC.',
+    tech:'KPIs SOC: MTTD (Mean Time to Detect) e MTTR (Mean Time to Respond)\nBaseado em SIEMs enterprise de mercado: Executive Dashboard com correlação de métricas de risco organizacional em tempo real'
+  },
+  {
+    target:'modules-panel',
+    title:'Arquitetura de Módulos SIEM/SOAR',
+    body:'Plataformas enterprise integram múltiplos módulos em um único data lake de segurança: SIEM, UEBA, SOAR, EDR/XDR, CASB, ASM, NTA, DLP e Threat Intelligence. Clique em qualquer módulo para ver detalhes técnicos.',
+    tech:'Arquitetura: Security Data Lake unificado\nIngestão: 500+ integrações nativas via conectores\nNormalização: XDM (eXtended Data Model) — schema único para todas fontes'
+  },
+  {
+    target:'alerts-panel',
+    title:'Fila de Alertas — Triagem e Priorização',
+    body:'O motor de correlação transforma milhões de eventos brutos em alertas priorizados. A priorização combina severidade técnica, criticidade do ativo afetado, contexto de threat intelligence e score UEBA do usuário.',
+    tech:'Correlação: regras temporais + estatísticas + ML\nDeduplicação: alert grouping por campanha/incidente\nFILOSOFIA: Event → Log → Alert → Incident (pipeline de priorização)'
+  },
+  {
+    target:'timeline-panel',
+    title:'Timeline de Ataque — MITRE ATT&CK',
+    body:'A timeline correlaciona eventos dispersos no tempo para reconstruir a cadeia de ataque (kill chain). Cada evento é mapeado automaticamente para táticas e técnicas do framework MITRE ATT&CK.',
+    tech:'Framework: MITRE ATT&CK v14 (14 táticas, 196+ técnicas)\nCorrelação temporal: sliding window de até 72h\nVisualização: attack story reconstruction automática'
+  },
+  {
+    target:'ueba-panel',
+    title:'UEBA — Análise Comportamental com IA',
+    body:'O UEBA (User and Entity Behavior Analytics) usa Machine Learning para criar baselines comportamentais individuais e de grupos. Detecta ameaças internas, contas comprometidas e movimentos laterais que evadem regras tradicionais.',
+    tech:'Algoritmos: Isolation Forest (anomalia) + LSTM (séries temporais)\nFeatures: 47 por usuário • Baseline: 30 dias • Atualização: horária\nPeer group analysis: compara comportamento com grupo de função similar'
+  },
+  {
+    target:'playbook-panel',
+    title:'Playbooks — Resposta Codificada e Repetível',
+    body:'Playbooks codificam o conhecimento dos analistas sênior em fluxos automatizados e auditáveis. Cada playbook define as ações de contenção, erradicação e recuperação para tipos específicos de incidentes. Clique em EXECUTAR!',
+    tech:'Tipos: Fully Automated, Semi-automated (human-in-loop), Manual\nDocumentação: ISO/IEC 27035 (IR Management)\nIntegração ITSM: criação automática de tickets com evidências'
+  },
+  {
+    target:'hunt-panel',
+    title:'Threat Hunting — Caça Proativa com XQL',
+    body:'Threat Hunting é a busca proativa de ameaças que ainda não geraram alertas. Analistas formulam hipóteses baseadas em TTPs conhecidos e as validam com queries em linguagem XQL (eXtended Query Language) sobre o Security Data Lake.',
+    tech:'Linguagem: XQL (eXtended Query Language) — SQL-like para segurança\nAcesso: 365 dias de dados históricos • Escala: PB de telemetria\nHipóteses baseadas em: MITRE ATT&CK, CTI reports, threat advisories'
+  },
+  {
+    target:'soar-panel',
+    title:'SOAR — Orquestração e Automação de Resposta',
+    body:'O SOAR (Security Orchestration, Automation & Response) executa playbooks automaticamente, coordenando múltiplas ferramentas de segurança via API. Clique em EXECUTAR PLAYBOOK para ver o fluxo em ação!',
+    tech:'Arquitetura: Event-driven + API-based orchestration\n200+ conectores: EDR, NGFW, IAM, ITSM, Email, Cloud\nROI: redução de 94% no MTTR • Liberação de 70% do tempo analítico'
+  },
+  {
+    target:'intel-panel',
+    title:'Threat Intelligence — IOCs e Inteligência Tática',
+    body:'A plataforma ingere, normaliza e distribui inteligência de ameaças de múltiplas fontes. IOCs (Indicadores de Comprometimento) são automaticamente bloqueados em controles de segurança e correlacionados com eventos internos.',
+    tech:'Padrão: STIX 2.1 / TAXII 2.1 (compartilhamento estruturado)\nIOC types: IP, Domain, URL, Hash, Email, CVE, TTPs\nFeeds: MISP, VirusTotal, Shodan, CISA KEV, ISACs setoriais'
+  },
+];
+
+let tourStep = 0;
+let tourActive = false;
+
+function startTour() {
+  initAudio();
+  playSuccess();
+  tourActive = true;
+  tourStep = 0;
+  window.scrollTo({top:0, behavior:'smooth'});
+  document.getElementById('tourOverlay').classList.add('active');
+  setTimeout(()=>{
+    document.getElementById('tourCard').style.display='block';
+    document.getElementById('tourHighlight').style.display='block';
+    renderTourStep();
+  }, 400);
+}
+
+function renderTourStep() {
+  const step = tourSteps[tourStep];
+  const el = document.getElementById(step.target);
+  if (!el) return;
+  
+  const rect = el.getBoundingClientRect();
+  const scrollY = window.scrollY;
+  const hl = document.getElementById('tourHighlight');
+  const card = document.getElementById('tourCard');
+  
+  // Scroll to element
+  el.scrollIntoView({behavior:'smooth', block:'nearest'});
+  
+  setTimeout(()=>{
+    const r2 = el.getBoundingClientRect();
+    // highlight uses fixed — no scrollY offset needed
+    hl.style.left = (r2.left - 4) + 'px';
+    hl.style.top  = (r2.top  - 4) + 'px';
+    hl.style.width  = (r2.width  + 8) + 'px';
+    hl.style.height = (r2.height + 8) + 'px';
+    // card also fixed — position next to highlight
+    const cardW = 330;
+    let cardLeft = r2.right + 16;
+    if (cardLeft + cardW > window.innerWidth - 8) cardLeft = r2.left - cardW - 16;
+    if (cardLeft < 8) cardLeft = 8;
+    let cardTop = r2.top + r2.height/2 - 180;
+    if (cardTop < 80) cardTop = 80;
+    if (cardTop + 420 > window.innerHeight) cardTop = window.innerHeight - 430;
+    card.style.left = cardLeft + 'px';
+    card.style.top  = cardTop  + 'px';
+  }, 350);
+  
+  document.getElementById('tourNum').textContent = tourStep+1;
+  document.getElementById('tourTitle').textContent = step.title;
+  document.getElementById('tourBody').textContent = step.body;
+  document.getElementById('tourTech').textContent = step.tech;
+  document.getElementById('tourCount').textContent = `${tourStep+1} / ${tourSteps.length}`;
+  document.getElementById('tourProgress').style.width = ((tourStep+1)/tourSteps.length*100)+'%';
+  document.getElementById('tourPrev').style.display = tourStep>0?'flex':'none';
+  document.getElementById('tourNext').textContent = tourStep<tourSteps.length-1 ? '▶' : '🏆';
+  
+  playBeep(440+tourStep*40, 0.1, 'sine', 0.06);
+  
+  // Highlight the module
+  if(step.target === 'modules-panel') {
+    setTimeout(()=>{ document.getElementById('mod-ueba').classList.add('active'); }, 500);
+  }
+}
+
+function nextTour() {
+  initAudio();
+  if(tourStep < tourSteps.length-1) {
+    tourStep++;
+    renderTourStep();
+  } else {
+    // End tour → show certificate
+    closeTour();
+    setTimeout(()=>showCertificate(), 300);
+  }
+}
+
+function prevTour() {
+  initAudio();
+  if(tourStep > 0) { tourStep--; renderTourStep(); }
+}
+
+function closeTour() {
+  document.getElementById('tourOverlay').classList.remove('active');
+  document.getElementById('tourCard').style.display='none';
+  document.getElementById('tourHighlight').style.display='none';
+  tourActive = false;
+  playClick();
+}
+
+// ============ CERTIFICATE ============
+function updateCertName(val) {
+  document.getElementById('certNameDisplay').textContent = val.trim() || 'Seu Nome Aqui';
+}
+
+function showCertificate() {
+  playSuccess();
+  document.getElementById('certModal').classList.add('show');
+  document.getElementById('certId').textContent = Math.random().toString(36).substr(2,8).toUpperCase();
+  document.getElementById('certDate').textContent = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'});
+  startConfetti();
+  setTimeout(()=>{ if(!muted) playSuccess(); }, 200);
+  setTimeout(()=>{ if(!muted) playSuccess(); }, 600);
+}
+
+function closeCert() {
+  document.getElementById('certModal').classList.remove('show');
+  stopConfetti();
+  playClick();
+}
+
+function downloadCertPNG() {
+  playSuccess();
+  showToast('🎨 Gerando certificado PNG...', 'success');
+
+  // Canvas dimensions — A4 landscape feel, high-res (2x scale)
+  const SCALE = 2;
+  const W = 1400, H = 900;
+  const cvs = document.createElement('canvas');
+  cvs.width  = W * SCALE;
+  cvs.height = H * SCALE;
+  const c = cvs.getContext('2d');
+  c.scale(SCALE, SCALE);
+
+  const MX = 40; // margin x
+  const participantName = (document.getElementById('certNameInput').value.trim()) || 'Profissional de Segurança';
+  const certIdVal   = document.getElementById('certId').textContent;
+  const certDateVal = document.getElementById('certDate').textContent;
+
+  // ── helpers ─────────────────────────────────────────────────────────────
+  function rr(x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.arcTo(x+w,y,x+w,y+r,r); c.lineTo(x+w,y+h-r); c.arcTo(x+w,y+h,x+w-r,y+h,r); c.lineTo(x+r,y+h); c.arcTo(x,y+h,x,y+h-r,r); c.lineTo(x,y+r); c.arcTo(x,y,x+r,y,r); c.closePath(); }
+  function hline(y){ const g=c.createLinearGradient(MX,0,W-MX,0); g.addColorStop(0,'transparent'); g.addColorStop(0.5,'rgba(255,215,0,0.45)'); g.addColorStop(1,'transparent'); c.strokeStyle=g; c.lineWidth=1; c.beginPath(); c.moveTo(MX,y); c.lineTo(W-MX,y); c.stroke(); }
+  function txt(str,x,y,font,color,align='center',maxW){
+    c.font=font; c.fillStyle=color; c.textAlign=align;
+    if(maxW) c.fillText(str,x,y,maxW); else c.fillText(str,x,y);
+  }
+  function corner(x,y,dx,dy){
+    c.strokeStyle='rgba(255,215,0,0.75)'; c.lineWidth=2.5;
+    c.beginPath(); c.moveTo(x,y+dy*32); c.lineTo(x,y); c.lineTo(x+dx*32,y); c.stroke();
+    c.strokeStyle='rgba(255,215,0,0.2)'; c.lineWidth=1;
+    c.beginPath(); c.moveTo(x,y+dy*20); c.lineTo(x,y); c.lineTo(x+dx*20,y); c.stroke();
+  }
+
+  // ── BACKGROUND ──────────────────────────────────────────────────────────
+  const bg = c.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.75);
+  bg.addColorStop(0,'#0d1f3c'); bg.addColorStop(0.6,'#060f20'); bg.addColorStop(1,'#020810');
+  c.fillStyle=bg; c.fillRect(0,0,W,H);
+
+  // subtle dot grid
+  c.fillStyle='rgba(0,212,255,0.025)';
+  for(let gx=60;gx<W;gx+=36) for(let gy=60;gy<H;gy+=36){
+    c.beginPath(); c.arc(gx,gy,1,0,Math.PI*2); c.fill();
+  }
+
+  // glowing orbs
+  [{x:200,y:200,r:220,col:'rgba(0,100,200,0.07)'},{x:W-200,y:H-200,r:200,col:'rgba(180,50,255,0.05)'}].forEach(o=>{
+    const og=c.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);
+    og.addColorStop(0,o.col); og.addColorStop(1,'transparent');
+    c.fillStyle=og; c.fillRect(0,0,W,H);
+  });
+
+  // ── OUTER BORDERS ───────────────────────────────────────────────────────
+  // outer gold border
+  c.strokeStyle='rgba(255,215,0,0.5)'; c.lineWidth=2;
+  rr(12,12,W-24,H-24,20); c.stroke();
+  // inner thin border
+  c.strokeStyle='rgba(255,215,0,0.15)'; c.lineWidth=1;
+  rr(22,22,W-44,H-44,15); c.stroke();
+
+  // ── CORNER ORNAMENTS ────────────────────────────────────────────────────
+  corner(28,28, 1, 1); corner(W-28,28,-1, 1);
+  corner(28,H-28,1,-1); corner(W-28,H-28,-1,-1);
+
+  // ── HEADER BAND ─────────────────────────────────────────────────────────
+  const hbH = 175;
+  const hb = c.createLinearGradient(0,0,W,hbH);
+  hb.addColorStop(0,'rgba(10,30,60,0.95)'); hb.addColorStop(0.5,'rgba(20,8,40,0.92)'); hb.addColorStop(1,'rgba(8,18,38,0.90)');
+  c.fillStyle=hb;
+  rr(28,28,W-56,hbH,15); c.fill();
+
+  // header bottom separator
+  hline(hbH+20);
+
+  // shield icon (drawn)
+  const sx=W/2, sy=75, sr=32;
+  c.fillStyle='rgba(0,212,255,0.1)'; c.beginPath(); c.arc(sx,sy,sr+6,0,Math.PI*2); c.fill();
+  c.strokeStyle='rgba(255,215,0,0.5)'; c.lineWidth=1.5; c.beginPath(); c.arc(sx,sy,sr+6,0,Math.PI*2); c.stroke();
+  c.font='36px serif'; c.textAlign='center'; c.fillText('🛡️',sx,sy+13);
+
+  // org name
+  c.shadowColor='rgba(255,215,0,0.5)'; c.shadowBlur=18;
+  txt('SIEM/SOAR BE SAFE', W/2, 130, 'bold 32px sans-serif', '#ffd700');
+  c.shadowBlur=0;
+  txt('CENTRO DE EXCELÊNCIA EM CIBERSEGURANÇA', W/2, 155, '11px monospace', 'rgba(255,215,0,0.42)');
+
+  // ── RIBBON ──────────────────────────────────────────────────────────────
+  const ribY=193, ribW=360, ribH=26;
+  c.fillStyle='rgba(255,215,0,0.1)'; rr(W/2-ribW/2,ribY,ribW,ribH,13); c.fill();
+  c.strokeStyle='rgba(255,215,0,0.3)'; c.lineWidth=1; rr(W/2-ribW/2,ribY,ribW,ribH,13); c.stroke();
+  txt('★  CERTIFICADO DE CONCLUSÃO  ★', W/2, ribY+17, '11px monospace', 'rgba(255,215,0,0.8)');
+
+  // ── NAME SECTION ────────────────────────────────────────────────────────
+  txt('Este certificado é conferido a', W/2, 248, 'italic 15px Georgia,serif', 'rgba(255,255,255,0.45)');
+
+  // name — auto-scale font to fit
+  let nameFontSize = 44;
+  c.font = `bold ${nameFontSize}px sans-serif`;
+  while(c.measureText(participantName).width > W - 160 && nameFontSize > 22) {
+    nameFontSize -= 2;
+    c.font = `bold ${nameFontSize}px sans-serif`;
+  }
+  c.shadowColor='rgba(255,215,0,0.3)'; c.shadowBlur=22;
+  txt(participantName, W/2, 300, `bold ${nameFontSize}px sans-serif`, '#ffffff');
+  c.shadowBlur=0;
+
+  // name underline
+  const nw = Math.min(c.measureText(participantName).width + 60, W-160);
+  const nlg = c.createLinearGradient(W/2-nw/2,0,W/2+nw/2,0);
+  nlg.addColorStop(0,'transparent'); nlg.addColorStop(0.5,'rgba(255,215,0,0.5)'); nlg.addColorStop(1,'transparent');
+  c.strokeStyle=nlg; c.lineWidth=1; c.beginPath(); c.moveTo(W/2-nw/2,312); c.lineTo(W/2+nw/2,312); c.stroke();
+
+  // course
+  txt('CURSO CONCLUÍDO', W/2, 340, '10px monospace', 'rgba(0,212,255,0.6)');
+  txt('Tour Guiado: Plataforma SIEM/SOAR Enterprise', W/2, 365, 'bold 17px sans-serif', '#00d4ff');
+
+  // duration badge
+  const bdW=168, bdH=32, bdX=W/2-bdW/2, bdY=378;
+  c.fillStyle='rgba(255,61,113,0.15)'; rr(bdX,bdY,bdW,bdH,bdH/2); c.fill();
+  c.strokeStyle='rgba(255,61,113,0.4)'; c.lineWidth=1; rr(bdX,bdY,bdW,bdH,bdH/2); c.stroke();
+  txt('⏱  1 hora  •  carga horária', W/2, bdY+21, 'bold 13px sans-serif', '#ff9eb5');
+
+  // ── CONTENT BOX ─────────────────────────────────────────────────────────
+  const boxY=428, boxH=320, boxX=MX+14, boxW=W-2*(MX+14);
+  c.fillStyle='rgba(0,212,255,0.03)'; rr(boxX,boxY,boxW,boxH,12); c.fill();
+  c.strokeStyle='rgba(0,212,255,0.1)'; c.lineWidth=1; rr(boxX,boxY,boxW,boxH,12); c.stroke();
+
+  // content title
+  txt('📚   CONTEÚDO APRENDIDO NESTE TOUR', W/2, boxY+26, 'bold 11px monospace', 'rgba(255,215,0,0.7)');
+
+  // thin separator under title
+  c.strokeStyle='rgba(255,215,0,0.12)'; c.lineWidth=1;
+  c.beginPath(); c.moveTo(boxX+20,boxY+36); c.lineTo(boxX+boxW-20,boxY+36); c.stroke();
+
+  const topics=[
+    ['SIEM Core','Correlação, normalização de logs (EPS) e pipeline de alertas em tempo real'],
+    ['UEBA','Análise comportamental com ML, baseline e peer group analysis'],
+    ['SOAR','Orquestração automatizada, playbooks de resposta e redução de MTTR'],
+    ['Threat Intelligence','IOCs, TTPs, feeds STIX/TAXII e scoring de ameaças'],
+    ['Threat Hunting','Queries XQL proativas baseadas em MITRE ATT&CK'],
+    ['EDR/XDR','Detecção em endpoint, isolamento e análise forense'],
+    ['MITRE ATT&CK','Mapeamento de táticas, técnicas e cobertura de controles'],
+    ['Playbooks','Resposta a incidentes, contenção e erradicação de ameaças'],
+    ['Compliance / GRC','ISO 27001, NIST CSF, SOC2, PCI-DSS, LGPD e auditoria'],
+    ['Métricas SOC','MTTD, MTTR, taxa de falso positivo e KPIs operacionais'],
+  ];
+
+  const colW = (boxW - 40) / 2;
+  const col1 = boxX + 20;
+  const col2 = boxX + 20 + colW + 10;
+  const rowH2 = 26;
+  const topicsStartY = boxY + 54;
+
+  topics.forEach(([label, desc], i) => {
+    const col = (i % 2 === 0) ? col1 : col2;
+    const row = Math.floor(i / 2);
+    const ty  = topicsStartY + row * rowH2;
+
+    // bullet
+    c.font='11px monospace'; c.fillStyle='rgba(0,212,255,0.7)'; c.textAlign='left';
+    c.fillText('▸', col, ty);
+
+    // label bold
+    c.font='bold 11px sans-serif'; c.fillStyle='rgba(255,215,0,0.85)';
+    c.fillText(label+':', col+16, ty);
+    const lw = c.measureText(label+':').width;
+
+    // desc
+    c.font='11px sans-serif'; c.fillStyle='rgba(200,225,255,0.65)';
+    // truncate if too long
+    let d = desc;
+    const maxDescW = colW - lw - 30;
+    while(c.measureText(d).width > maxDescW && d.length > 10) d = d.slice(0,-4)+'...';
+    c.fillText(' '+d, col+16+lw, ty);
+  });
+
+  // ── SEPARATOR BEFORE FOOTER ─────────────────────────────────────────────
+  const footerY = boxY + boxH + 12;
+  hline(footerY);
+
+  // ── FOOTER ──────────────────────────────────────────────────────────────
+  const fy = footerY + 40;
+
+  // LEFT — Signature
+  const sigX = MX + 90;
+  const sigLineG = c.createLinearGradient(sigX-80,0,sigX+80,0);
+  sigLineG.addColorStop(0,'transparent'); sigLineG.addColorStop(0.5,'rgba(255,215,0,0.55)'); sigLineG.addColorStop(1,'transparent');
+  c.strokeStyle=sigLineG; c.lineWidth=1;
+  c.beginPath(); c.moveTo(sigX-80,fy-8); c.lineTo(sigX+80,fy-8); c.stroke();
+  txt('Mariana BS', sigX, fy+10, 'bold 14px sans-serif', '#ffd700', 'center');
+  txt('Instrutora Sênior  •  SIEM/SOAR Be Safe', sigX, fy+28, '10px sans-serif', 'rgba(255,255,255,0.38)', 'center');
+
+  // CENTER — Verified seal
+  c.fillStyle='rgba(0,255,136,0.08)'; c.beginPath(); c.arc(W/2,fy+10,28,0,Math.PI*2); c.fill();
+  c.strokeStyle='rgba(0,255,136,0.25)'; c.lineWidth=1; c.beginPath(); c.arc(W/2,fy+10,28,0,Math.PI*2); c.stroke();
+  txt('✅', W/2, fy+4,  '22px serif', 'rgba(0,255,136,0.9)', 'center');
+  txt('VERIFICADO', W/2, fy+26, 'bold 8px monospace', 'rgba(0,255,136,0.6)', 'center');
+
+  // RIGHT — ID & date
+  const idX = W - MX - 20;
+  txt('ID: #SIEM-'+certIdVal, idX, fy+6,  '10px monospace', 'rgba(255,255,255,0.3)', 'right');
+  txt(certDateVal,            idX, fy+22, '10px monospace', 'rgba(255,255,255,0.25)','right');
+  txt('🔒 Assinado digitalmente', idX, fy+38, '9px monospace',  'rgba(0,212,255,0.35)',  'right');
+
+  // ── DOWNLOAD ────────────────────────────────────────────────────────────
+  const link = document.createElement('a');
+  link.download = 'certificado-siem-soar-besafe.png';
+  link.href = cvs.toDataURL('image/png', 1.0);
+  link.click();
+  showToast('✅ Certificado PNG baixado!', 'success');
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r, y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x, y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+// ============ CONFETTI ============
+const confCanvas = document.getElementById('confettiCanvas');
+const confCtx = confCanvas.getContext('2d');
+let confParticles = [];
+let confRunning = false;
+let confAnim = null;
+
+function startConfetti() {
+  confCanvas.width = window.innerWidth;
+  confCanvas.height = window.innerHeight;
+  confParticles = [];
+  for(let i=0;i<200;i++) {
+    confParticles.push({
+      x: Math.random()*confCanvas.width, y: -20,
+      vx: (Math.random()-0.5)*4, vy: Math.random()*4+2,
+      r: Math.random()*8+4, rot: Math.random()*360,
+      vrot: (Math.random()-0.5)*10,
+      color: ['#ffd700','#ff3d71','#00d4ff','#00ff88','#ff6b35'][Math.floor(Math.random()*5)]
+    });
+  }
+  confRunning=true;
+  animConfetti();
+}
+
+function animConfetti() {
+  if(!confRunning){confCtx.clearRect(0,0,confCanvas.width,confCanvas.height);return;}
+  confCtx.clearRect(0,0,confCanvas.width,confCanvas.height);
+  confParticles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy; p.rot+=p.vrot;
+    if(p.y>confCanvas.height+20){p.y=-20;p.x=Math.random()*confCanvas.width;}
+    confCtx.save();
+    confCtx.translate(p.x,p.y);
+    confCtx.rotate(p.rot*Math.PI/180);
+    confCtx.fillStyle=p.color;
+    confCtx.fillRect(-p.r/2,-p.r/2,p.r,p.r/2);
+    confCtx.restore();
+  });
+  confAnim=requestAnimationFrame(animConfetti);
+}
+
+function stopConfetti() {
+  confRunning=false;
+  if(confAnim) cancelAnimationFrame(confAnim);
+}
+
+// ============ RIPPLE ============
+document.addEventListener('click', function(e) {
+  const el = e.target.closest('.panel,.module-card,.stat-card,.alert-item,.ueba-user,.pb-item,.workflow-step,.ioc-card');
+  if(!el) return;
+  const r = document.createElement('div');
+  r.className='ripple';
+  const rect = el.getBoundingClientRect();
+  r.style.left=(e.clientX-rect.left)+'px';
+  r.style.top=(e.clientY-rect.top)+'px';
+  el.style.position='relative';
+  el.appendChild(r);
+  setTimeout(()=>r.remove(), 600);
+});
+
+// ============ INIT AUDIO ON INTERACTION ============
+document.addEventListener('click', ()=>initAudio(), {once:true});
+
+// ============ PERIODIC UPDATES ============
+setInterval(()=>{
+  const ev = document.getElementById('cnt-events');
+  if(ev) ev.textContent = (1284931 + Math.floor(Math.random()*4200)).toLocaleString('pt-BR');
+}, 3000);
+
+setInterval(()=>{
+  const iocs2 = document.querySelectorAll('.ioc-card');
+  const idx = Math.floor(Math.random()*iocs2.length);
+  if(iocs2[idx]){ iocs2[idx].style.animation='none'; setTimeout(()=>iocs2[idx].style.animation='',100); }
+}, 8000);
+
+// Initial load animation
+window.addEventListener('load', ()=>{
+  document.querySelectorAll('.panel,.stat-card').forEach((el,i)=>{
+    el.style.opacity='0'; el.style.transform='translateY(20px)';
+    setTimeout(()=>{
+      el.style.transition='opacity 0.5s ease, transform 0.5s ease';
+      el.style.opacity='1'; el.style.transform='translateY(0)';
+    }, i*60);
+  });
+  setTimeout(()=>showToast('🛡️ SIEM/SOAR Be Safe iniciado. Clique em INICIAR TOUR!'), 1500);
+});
+</script>
+</body>
+</html>
